@@ -105,10 +105,6 @@ class ADS_set
   {
    for(size_t i = 0; i  < directory_size; i++)
    {
-    if( i >= directory_size/2 && buckets[i] == buckets[i - directory_size/2])
-    {
-     continue;
-    }
     delete buckets[i];
    }
    delete[] buckets;
@@ -172,51 +168,28 @@ class ADS_set
    return buckets[index]->contains(key);
   }
   
-  void splitBucket(size_t index) 
-  {
-    Bucket<Key, N>* bucket = buckets[index]; // Получаем указатель на текущий бакет
-    if (bucket->get_capacity() >= N) 
-    {
-        Bucket<Key, N>* newBucket = new Bucket<Key, N>();
-        size_t bucketSize = bucket->get_capacity();
-
-        Key* temp = new Key[bucketSize + 1]; // Временный массив
-
-        // Копируем объекты из бакета во временный массив
-        for (size_t i = 0; i < bucketSize; ++i) 
-        {
-            temp[i] = bucket->getValue(i); // Нужно определить getValue для получения элементов бакета
-        }
-
-        // Добавляем новый элемент в конец временного массива
-        // new_value_that_caused_split - это новый элемент, вызвавший разделение
-        temp[bucketSize] = new_value_that_caused_split; // Необходимо определить, как вы определяете этот элемент
-
-        // Очищаем размер бакета
-        // bucket->set_size(0); // Нужно определить метод set_size для очистки размера бакета
-
-        // Возвращаем объекты обратно в бакет
-        for (size_t i = 0; i <= bucketSize; ++i) 
-        {
-            bucket->insert(temp[i]); // Используем метод insert для вставки элементов в бакет
-        }
-
-        delete[] temp; // Удаляем временный массив
-    }
-  }
+  
   
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
