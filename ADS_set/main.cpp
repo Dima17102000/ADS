@@ -2,10 +2,42 @@
 #include <iostream>
 
 
+int test_insert_4(){
+  ADS_set<int, 2> my_set(2);
+  std::cout << my_set << std::endl;
+  // for (int i = 0; i < 8; i++){
+  //   my_set.insert(i);
+  // }
+  my_set.insert(0);
+  my_set.insert(8);
+  my_set.insert(16);
+  my_set.insert(32);
+  my_set.insert(32);
 
-int main()
+  std::cout << std::endl;
+  std::cout << my_set << std::endl;
+  std::cout << std::endl;
+  std::cout << "set size is " << my_set.size() << std::endl;
+  return 0;
+}
+
+int test_insert_3(){
+  ADS_set<int, 2> my_set(2);
+  std::cout << my_set << std::endl;
+  for (int i = 0; i < 8; i++){
+    my_set.insert(i);
+  }
+
+  std::cout << std::endl;
+  std::cout << my_set << std::endl;
+  std::cout << std::endl;
+  return 0;
+}
+
+
+int test_insert_1()
 { 
-  ADS_set<int,3> my_set(7);    
+  ADS_set<int,3> my_set(7);
   //std::cout << my_set << " ";
   std::cout << std::endl;
   my_set.insert(33);
@@ -41,7 +73,7 @@ int main_1()
 }
 
 
-int main_2()
+int test_insert_2()
 {
  ADS_set<std::string,3> my_set(7);    
   //std::cout << my_set << " ";
@@ -58,4 +90,23 @@ int main_2()
   std::cout << (my_set.contains("M")? "Number found" : "Number not found") << std::endl;
   
   return 0;
+}
+
+int test_remove_1(){
+  ADS_set<int, 5> my_set(4);
+  for (int i = 0; i < 20; i++){
+    my_set.insert(i);
+  }
+  my_set.erase(8);
+  my_set.erase(9);
+  std::cout << std::endl;
+  std::cout << my_set << std::endl;
+  std::cout << std::endl;
+  std::cout << "set size is " << my_set.size() << std::endl;
+  return 0;
+}
+
+
+int main(){
+  test_remove_1();
 }
