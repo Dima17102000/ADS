@@ -5,138 +5,255 @@
 #include <iomanip>
 
 
-  using std::size_t;
-  //using value_type = Key;
-  //using key_type = Key;
-  //using reference = value_type &;
-  //using const_reference = const value_type &;
-  //using size_type = size_t;
-  //using difference_type = std::ptrdiff_t;
-  //using const_iterator = /* iterator type */;
-  //using iterator = const_iterator;
-  //using key_compare = std::less<key_type>;                         // B+-Tree
-  //using key_equal = std::equal_to<key_type>;                       // Hashing
-  //using hasher = std::hash<key_type>;                              // Hashing
 
 template <typename Key, size_t N = 3>
 
-class Bucket
+class ADS_set
+{   
+    using value_type = Key;
+    using key_type = Key;
+    using reference = value_type &;
+    using const_reference = const value_type &;
+    using size_type = size_t;
+    using difference_type = std::ptrdiff_t;
+    using const_iterator = /* iterator type */;
+    using iterator = const_iterator;
+    using key_compare = std::less<key_type>;                         // B+-Tree
+    using key_equal = std::equal_to<key_type>;                       // Hashing
+    using hasher = std::hash<key_type>;                              // Hashing
+
+    private:
+    Bucket<key_type,N>** buckets;
+    size_type depth;
+    size_type directory_size;
+    size_type total_elements;
+    
+    void insertToBucket(size_type index,key_type key) {
+        buckets[index]->insert(key);
+    }
+
+    void expandDirectory()
+    {
+        size_type new_directory_size = directory_size * 2;
+        Bucket<key_type, N>** new_buckets = new Bucket<key_type, N>*[new_directory_size];
+        for(size_type i{0}; i < directory_size; i++)
+        { 
+            new_buckets[i] = buckets[i];
+            new_buckets[i + directory_size] = buckets[i];
+        }
+        delete[] buckets;
+        buckets = new_buckets;
+        directory_size = new_directory_size;
+        
+        depth++;
+    }
+
+    void splitBucket(size_type index) 
+    {
+        Bucket<key_type, N>* bucket = buckets[index]; 
+        if (bucket->get_capacity() < N)
+            return;
+        bucket->increase_depth();
+        Bucket<key_type, N>* newBucket = new Bucket<key_type, N>(bucket->get_local_depth());
+      
+        if(bucket->get_local_depth() > directory_depth) {
+            expandDirectory();
+        }
+        buckets[index] = newBucket;
+        value_type* temp = new key_type[N]; 
+        for (size_type i = 0; i < N; ++i) {
+            temp[i] = bucket->get_value(i); 
+        }
+
+        bucket->clear(); 
+        total_elements -= N;
+
+        for (size_type i = 0; i < N; ++i) {   
+            this->insert(temp[i]); 
+        }
+        delete[] temp; 
+    }
+   
+    public:
+    ADS_set() : depth(0), directory_size(0), total_elements(0) 
+    {
+        buckets = new Bucket<key_type, N>*[directory_size];
+        for(size_type i = 0; i < directory_size; i++) {
+            buckets[i] = new Bucket<key_type, N>(depth);
+        }
+    }
+    
+    ADS_set(std::initializer_list<key_type> ilist)
+    {
+        for (const key_type& key : init_list) 
+        {
+            insert(key);
+        }
+    }
+    
+    ADS_set(size_type directory_size): depth(0), directory_size(directory_size), total_elements(0)
+    {
+        buckets = new Bucket<key_type, N>*[directory_size];
+        for(size_type i = 0; i  < directory_size; i++)
+        {
+            buckets[i] = new Bucket<key_type,N>(depth);
+        }
+    }
+
+    ~ADS_set()
+    {   
+        for(size_type i = 0; i  < directory_size; i++)
+        {
+            bool pointer_is_unique = true;
+            for (size_type j = 0; j < i; j++)
+            {
+                if (buckets[i] == buckets[j]) pointer_is_unique = false;
+            }
+            if (pointer_is_unique)
+                delete buckets[i];
+        }
+        delete[] buckets;
+    }
+  
+ 
+    size_type size() const
+    {
+        return total_elements;
+    }
+
+    void dump(std::ostream& o) const 
+    {
+        for(size_type i{0}; i < directory_size; i++) 
+        {
+            o << *(buckets[i]) << std::endl;
+        }
+
+            if(directory_size >= 1) 
+            {
+        for(size_type i{0}; i < (buckets[0]->get_capacity()); i++) 
+        {
+            o << "------";
+        }
+        o << "-";
+            }
+
+        //Bucket::dump
+        //ADS_set::dump
+    }
+
+    bool contains(key_type key) const
+    {
+        size_type index = hasher(key) % directory_size;
+        return buckets[index]->contains(key);
+    }
+
+    void insert(key_type key)
+    {
+        size_type index = hasher(key) % directory_size;
+        if (buckets[index]->contains(key)) 
+        {
+            return;
+        }
+
+        if (buckets[index]->full()) 
+        {
+            splitBucket(index);
+            return insert(key);
+        }
+        buckets[index]->insert(key);
+        total_elements++;
+    }
+
+    void erase(key_type key)    
+    {
+        size_type  index =  hasher(key) % directory_size;
+        if (!buckets[index]->contains(key))
+            return;
+        buckets[index]->erase(key);
+        total_elements--;
+    }
+    
+    void clear()
+    {
+        for (size_type i = 0; i < directory_size; ++i) {
+            buckets[i]->clear();
+        }
+        total_elements = 0;
+    }
+    
+    bool empty() const
+    {
+        return total_elements == 0;
+    }
+    
+    class Bucket
 {
     private:
-    Key* values;
-    size_t size;
-    size_t local_depth;
-    size_t max_size;
+        key_type* values;
+        size_type depth;
+        size_type size;
+        size_type max_size;
+
+        void increase_depth() { // has to be private so that user can't sabotage the algorithm
+            depth++;
+        }
     
     public:
 
-    Bucket(size_t initial_local_depth): values(new Key [N]),max_size(N),local_depth(initial_local_depth),size(0){}
+    Bucket(size_type depth): values(new key_type[N]), max_size(N), depth(depth), size(0){}
  
     ~Bucket()
     {
         delete[] values;
     }
     
-    void insert (Key key)
-    {
-        if(contains(key))
-        {
-            return; 
-        }
-   
-        if(size < max_size)
-        {
-            values[size++] = key;
-        }
-    }
-    
-    size_t get_capacity()
-    {
+    size_type get_capacity() {
         return max_size;
     }
 
-
-    size_t get_local_depth() const 
-    {
-        return local_depth;
+    size_type get_depth() const {
+        return depth;
     }
 
-    void increase_depth()
+    key_type get_value(size_type index) const 
     {
-        local_depth++;
+        if(index  < size){
+            return values[index];
+        } else {
+            return key_type();
+        }
     }
 
-    bool full()
-    {
+    bool full() const {
         return  size  ==  max_size;
     }
- 
-    Key get_value(size_t index) const 
-    {
-        if(index  < size)
-        {
-            return values[index];
-        }
-
-        else
-        {
-            return Key();
-        }
-    }
-    /*
-    friend std::ostream& operator<<(std::ostream& os,const Bucket& b)
-    {
-        for(size_t i{0}; i < b.max_size; i++)
-        {
-            os << "------";
-        }
-        
-        os << "-\n|";   
-        
-        for(size_t i{0}; i < b.max_size; i++)
-        {
-   
-            if(i >= b.size)
-            {
-                os << std::setw(5) << "" << "|"; 
-            }
-
-            
-            else
-            {
-                os << std::setw(5) << b.values[i] << "|";
-            }
-        }
-        
-        return os;
-    }
-    */
     
+    void clear()
+    {
+        size  = 0;
+    }
+
     void dump(std::ostream &o) const 
     {
-        for(size_t i{0}; i < max_size; i++) 
+        for(size_type i{0}; i < max_size; i++) 
         {
             o << "------";
         }
         o << "-\n|";   
     
-        for(size_t i{0}; i < max_size; i++) 
+        for(size_type i{0}; i < max_size; i++) 
         {
-            if(i >= size) 
-            {
+            if(i >= size) {
                 o << std::setw(5) << "" << "|"; 
-            } 
-            
-            else 
-            {
+            } else {
                 o << std::setw(5) << values[i] << "|";
             }
         }
     }
 
-    bool contains(Key key)
+    bool contains(key_type key)
     {
-        for(size_t i{0}; i < size; i++)
+        for(size_type i{0}; i < size; i++)
         {
             if(values[i] == key)
             {
@@ -146,15 +263,18 @@ class Bucket
         return false;
     }
 
-    void clear()
+    void insert (key_type key)
     {
-        size  = 0;
+        if(contains(key)) return; 
+   
+        if(size < max_size) {
+            values[size++] = key;
+        }
     }
-
     
-    void erase(Key key)
+    void erase(key_type key)
     {
-        for(size_t  i{0}; i < size; i++)
+        for(size_type  i{0}; i < size; i++)
         { 
             if(values[i]  ==  key)
             {
@@ -169,170 +289,13 @@ class Bucket
     }
 };
 
-
-template <typename Key, size_t N = 3>
-class ADS_set
-{ 
-    private:
-    Bucket<Key,N>** buckets;
-    size_t directory_depth;
-    size_t directory_size;
-    size_t total_elements;
-    
-    public:
-
-    ADS_set(size_t initial_directory_size): directory_depth(0),directory_size(initial_directory_size),total_elements(0)
-    {
-        buckets = new Bucket<Key,N>*[directory_size];
-        for(size_t i = 0; i  < directory_size; i++)
-        {
-            buckets[i] = new Bucket<Key,N>(directory_depth);
-        }
-    }
-
-    ~ADS_set()
-    {   
-        for(size_t i = 0; i  < directory_size; i++)
-        {
-            bool pointer_is_unique = true;
-        for (size_t j = 0; j < i; j++)
-        {
-            if (buckets[i] == buckets[j]) pointer_is_unique = false;
-        }
-            if (pointer_is_unique)
-            delete buckets[i];
-        }
-        delete[] buckets;
-    }
-  
-    void insertToBucket(size_t index,Key key)
-    {
-        buckets[index]->insert(key);
-    }   
-  
-    size_t hashFunktion(Key key)const
-    {
-        return std::hash<Key>{}(key);
-    }
- 
-    size_t  size() const
-    {
-        return total_elements;
-    }
-
-    void insert(Key key)
-    {
-        size_t index = hashFunktion(key) % directory_size;
-        if (buckets[index]->contains(key)) 
-        {
-            return;
-        }
-
-        if (buckets[index]->full()) 
-        {
-            splitBucket(index);
-            return insert(key);
-        }
-        buckets[index]->insert(key);
-        total_elements++;
-    }
- 
-    void expandDirectory()
-    {
-        size_t new_directory_size = directory_size * 2;
-        Bucket<Key, N>** new_buckets = new Bucket<Key, N>*[new_directory_size];
-        for(size_t i{0}; i < directory_size; i++)
-        { 
-            new_buckets[i] = buckets[i];
-            new_buckets[i+directory_size] = buckets[i];
-        }
-        delete[]buckets;
-        buckets = new_buckets;
-        directory_size = new_directory_size;
-        directory_depth++;
-    }
-  
-    /*
-    friend std::ostream& operator<<(std::ostream& os,const ADS_set& d1)
-    {
-        for(size_t i{0}; i < d1.directory_size; i++)
-        {
-            os <<  *(d1.buckets[i]) << std::endl;   
-        }
-            if(d1.directory_size >= 1)
-            {
-        for(size_t i{0}; i < (d1.buckets[0]->get_capacity()); i++)
-        {
-            os << "------";
-        }
-                os << "-";
-            }
-        return os;
-    }
-    */
-    void dump(std::ostream& o) const 
-    {
-        for(size_t i{0}; i < directory_size; i++) 
-        {
-            o << *(buckets[i]) << std::endl;   
-        }
-
-            if(directory_size >= 1) 
-            {
-        for(size_t i{0}; i < (buckets[0]->get_capacity()); i++) 
-        {
-            o << "------";
-        }
-        o << "-";
-            }
-    }
-    
-    bool contains(Key key)const
-    {
-        size_t index = hashFunktion(key) % directory_size;
-        return buckets[index]->contains(key);
-    }
-  
-  
-
-    void splitBucket(size_t index) 
-    {
-        Bucket<Key, N>* bucket = buckets[index]; 
-        if (bucket->get_capacity() < N) return;
-        bucket->increase_depth();
-        Bucket<Key, N>* newBucket = new Bucket<Key, N>(bucket->get_local_depth());
-      
-        if(bucket->get_local_depth() > directory_depth)
-        {
-            expandDirectory();
-        }
-        buckets[index] = newBucket;
-        Key* temp = new Key[N]; 
-        for (size_t i = 0; i < N; ++i) 
-        {
-            temp[i] = bucket->get_value(i); 
-        }
-            bucket->clear(); 
-            total_elements -= N;
-
-        for (size_t i = 0; i < N; ++i) 
-        {   
-            this->insert(temp[i]); 
-        }
-      delete[] temp; 
-    }
-
-    void  erase(Key key)    
-    {
-        size_t  index =  hashFunktion(key) % directory_size;
-        if (!buckets[index]->contains(key))
-        return;
-        buckets[index]->erase(key);
-        total_elements--;
-    }
 };
 
 #endif
+
+
+
+
 
 
 
