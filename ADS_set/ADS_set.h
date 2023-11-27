@@ -34,6 +34,34 @@ class ADS_set
         Bucket(size_type depth): values(new key_type[N]), max_size(N), depth(depth), size(0){}
     
         ~Bucket() {delete[] values;}
+
+         Bucket(const Bucket& other): values(new key_type[other.max_size]),depth(other.depth),size(other.size),max_size(other.max_size) 
+         {
+
+        // Perform a deep copy of the values array
+            for (size_type i = 0; i < other.size; ++i) 
+            {
+                values[i] = other.values[i];
+            }
+        
+        }
+        // Bucket& operator=(const Bucket& other)
+        // {
+        //     if (this != &other) // Check for self-assignment
+        //     {
+        //         depth = other.depth;
+        //         size = other.size;
+        //         max_size = other.max_size;
+
+        //         delete[] values; // Free existing memory
+        //         values = new key_type[max_size];
+        //         for (size_type i = 0; i < other.size; ++i) 
+        //         {
+        //             values[i] = other.values[i]; // Perform a deep copy of values
+        //         }
+        //     }
+        //     return *this;
+        // }
     
         void increase_depth() { // has to be private so that user can't sabotage the algorithm
             depth++;
@@ -174,29 +202,42 @@ class ADS_set
     }
    
     public:
-    ADS_set() : depth(0), directory_size(0), total_elements(0) 
+    ADS_set() : ADS_set(4)
     {
-        buckets = new Bucket*[directory_size];
-        for(size_type i = 0; i < directory_size; i++) {
-            buckets[i] = new Bucket(depth);
-        }
+
     }
     
-    ADS_set(size_type directory_size): depth(0), directory_size(directory_size), total_elements(0)
+    // argument with default value
+    ADS_set(size_type directory_size1): depth(0), directory_size(directory_size1), total_elements(0)
     {
         buckets = new Bucket*[directory_size];
-        for(size_type i = 0; i  < directory_size; i++) {
+        for (size_type i = 0; i < directory_size; ++i) 
+        {
             buckets[i] = new Bucket(depth);
         }
     }
 
-    ADS_set(std::initializer_list<key_type> ilist)
+    ADS_set(std::initializer_list<key_type> ilist):ADS_set(2*ilist.size()/N)
     {
         for (const key_type& key : ilist) 
         {
             insert(key);
         }
     }
+    
+    
+    ADS_set(const ADS_set& other) : ADS_set(other.directory_size)
+    {
+        depth = other.depth; 
+        directory_size = other.directory_size; 
+        total_elements = other.total_elements;
+        buckets = new Bucket*[directory_size];
+        for (size_type i = 0; i < directory_size; ++i) {
+            buckets[i] = new Bucket(*(other.buckets[i])); // Assuming Bucket has a copy constructor
+        }
+    }                                 
+    
+    
 
     ~ADS_set()
     {   
@@ -260,6 +301,15 @@ class ADS_set
         total_elements++;
     }
 
+    void insert(std::initializer_list<key_type> ilist) 
+    {
+        for (const key_type& key : ilist) 
+        {
+            insert(key);
+        }
+    
+    }
+    
     void erase(key_type key)    
     {
         size_type  index =  hasher{}(key) % directory_size;
