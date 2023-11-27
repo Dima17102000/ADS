@@ -8,7 +8,8 @@
 
 template <typename Key, size_t N = 3>
 class ADS_set
-{   
+{
+    public:
     using value_type = Key;
     using key_type = Key;
     using reference = value_type&;
@@ -31,19 +32,34 @@ class ADS_set
 
         public:
 
-        Bucket(size_type depth): values(new key_type[N]), max_size(N), depth(depth), size(0){}
+        Bucket(size_type depth): values{new key_type[N]},depth{depth}, size{0},max_size{N}
+        {
+        }
     
         ~Bucket() {delete[] values;}
 
-         Bucket(const Bucket& other): values(new key_type[other.max_size]),depth(other.depth),size(other.size),max_size(other.max_size) 
+         Bucket(const Bucket& other): values(new key_type[other.max_size]),depth(other.depth),size(other.size),max_size(other.max_size)
          {
 
         // Perform a deep copy of the values array
-            for (size_type i = 0; i < other.size; ++i) 
+            for (size_type i = 0; i < other.size; ++i)
             {
                 values[i] = other.values[i];
             }
         
+        }
+        Bucket& operator=(const Bucket& other){
+            if (this != &other) // Check for self-assignment
+            {
+                depth = other.depth;
+                size = other.size;
+
+                for (size_type i = 0; i < other.size; ++i)
+                {
+                    values[i] = other.values[i]; // Perform a deep copy of values
+                }
+            }
+            return *this;
         }
         // Bucket& operator=(const Bucket& other)
         // {
@@ -55,7 +71,7 @@ class ADS_set
 
         //         delete[] values; // Free existing memory
         //         values = new key_type[max_size];
-        //         for (size_type i = 0; i < other.size; ++i) 
+        //         for (size_type i = 0; i < other.size; ++i)
         //         {
         //             values[i] = other.values[i]; // Perform a deep copy of values
         //         }
@@ -75,7 +91,7 @@ class ADS_set
             return depth;
         }
 
-        key_type get_value(size_type index) const 
+        key_type get_value(size_type index) const
         {
             if(index  < size){
                 return values[index];
@@ -93,39 +109,39 @@ class ADS_set
             size  = 0;
         }
 
-        void dump(std::ostream &o) const 
+        void dump(std::ostream &o=std::cerr) const
         {
-            for(size_type i{0}; i < max_size; i++) 
+            for(size_type i{0}; i < max_size; i++)
             {
                 o << "------";
             }
-            o << "-\n|";   
+            o << "-\n|";
         
-            for(size_type i{0}; i < max_size; i++) 
+            for(size_type i{0}; i < max_size; i++)
             {
                 if(i >= size) {
-                    o << std::setw(5) << "" << "|"; 
+                    o << std::setw(5) << "" << "|";
                 } else {
                     o << std::setw(5) << values[i] << "|";
                 }
             }
         }
 
-        bool contains(key_type key)
+        size_type count(const key_type &key) const
         {
             for(size_type i{0}; i < size; i++)
             {
                 if(key_equal{}(values[i], key))
                 {
-                    return true;
+                    return 1;
                 }
             }
-            return false;
+            return 0;
         }
 
         void insert (key_type key)
         {
-            if(contains(key)) return; 
+            if(count(key)) return;
     
             if(size < max_size) {
                 values[size++] = key;
@@ -135,13 +151,13 @@ class ADS_set
         void erase(key_type key)
         {
             for(size_type  i{0}; i < size; i++)
-            { 
+            {
                 if (key_equal{}(values[i], key))
                 {
                     if(i  !=  size  - 1)
                     {
                         values[i] = values[size-1];
-                    }        
+                    }
                     --size;
                     return;
                 }
@@ -164,7 +180,7 @@ class ADS_set
         size_type new_directory_size = directory_size * 2;
         Bucket** new_buckets = new Bucket*[new_directory_size];
         for(size_type i{0}; i < directory_size; i++)
-        { 
+        {
             new_buckets[i] = buckets[i];
             new_buckets[i + directory_size] = buckets[i];
         }
@@ -175,9 +191,9 @@ class ADS_set
         depth++;
     }
 
-    void splitBucket(size_type index) 
+    void splitBucket(size_type index)
     {
-        Bucket* bucket = buckets[index]; 
+        Bucket* bucket = buckets[index];
         if (bucket->get_capacity() < N)
             return;
         bucket->increase_depth();
@@ -187,18 +203,18 @@ class ADS_set
             expandDirectory();
         }
         buckets[index] = newBucket;
-        value_type* temp = new key_type[N]; 
+        value_type* temp = new key_type[N];
         for (size_type i = 0; i < N; ++i) {
-            temp[i] = bucket->get_value(i); 
+            temp[i] = bucket->get_value(i);
         }
 
-        bucket->clear(); 
+        bucket->clear();
         total_elements -= N;
 
-        for (size_type i = 0; i < N; ++i) {   
-            this->insert(temp[i]); 
+        for (size_type i = 0; i < N; ++i) {
+            this->insert(temp[i]);
         }
-        delete[] temp; 
+        delete[] temp;
     }
    
     public:
@@ -210,8 +226,12 @@ class ADS_set
     // argument with default value
     ADS_set(size_type directory_size1): depth(0), directory_size(directory_size1), total_elements(0)
     {
+        if(directory_size   < 1)
+        {
+            directory_size  =  1;
+        }
         buckets = new Bucket*[directory_size];
-        for (size_type i = 0; i < directory_size; ++i) 
+        for (size_type i = 0; i < directory_size; ++i)
         {
             buckets[i] = new Bucket(depth);
         }
@@ -219,28 +239,44 @@ class ADS_set
 
     ADS_set(std::initializer_list<key_type> ilist):ADS_set(2*ilist.size()/N)
     {
-        for (const key_type& key : ilist) 
+        for (const key_type& key : ilist)
         {
             insert(key);
         }
     }
-    
-    
+
+    template<typename InputIt>
+    ADS_set(InputIt first,InputIt last):ADS_set(2 * std::distance(first, last) / N)
+    {
+        for (InputIt it = first; it != last; ++it) {
+            insert(*it);
+        }
+    }
+
     ADS_set(const ADS_set& other) : ADS_set(other.directory_size)
     {
-        depth = other.depth; 
-        directory_size = other.directory_size; 
+        depth = other.depth;
+        directory_size = other.directory_size;
         total_elements = other.total_elements;
-        buckets = new Bucket*[directory_size];
+        
         for (size_type i = 0; i < directory_size; ++i) {
-            buckets[i] = new Bucket(*(other.buckets[i])); // Assuming Bucket has a copy constructor
+            // buckets[i] = new Bucket(*(other.buckets[i])); // Assuming Bucket has a copy constructor
+            *buckets[i] = *other.buckets[i];
         }
-    }                                 
+    }
     
     
-
+    template<typename InputIt>
+    void insert(InputIt first, InputIt last)
+    {
+        for (InputIt it = first; it != last; ++it)
+        {
+            insert(*it);
+        }
+    }
+    
     ~ADS_set()
-    {   
+    {
         for(size_type i = 0; i  < directory_size; i++)
         {
             bool pointer_is_unique = true;
@@ -260,17 +296,17 @@ class ADS_set
         return total_elements;
     }
 
-    void dump(std::ostream& o) const 
+    void dump(std::ostream& o =std::cerr) const
     {
-        for(size_type i{0}; i < directory_size; i++) 
+        for(size_type i{0}; i < directory_size; i++)
         {
             buckets[i]->dump(o);
             o << std::endl;
         }
 
-        if(directory_size >= 1) 
+        if(directory_size >= 1)
         {
-            for(size_type i{0}; i < (buckets[0]->get_capacity()); i++) 
+            for(size_type i{0}; i < (buckets[0]->get_capacity()); i++)
             {
                 o << "------";
             }
@@ -278,21 +314,21 @@ class ADS_set
         }
     }
 
-    bool contains(key_type key) const
+    size_type count(const key_type &key) const
     {
         size_type index = hasher{}(key) % directory_size;
-        return buckets[index]->contains(key);
+        return buckets[index]->count(key);
     }
 
     void insert(key_type key)
     {
         size_type index = hasher{}(key) % directory_size;
-        if (buckets[index]->contains(key)) 
+        if (buckets[index]->count(key))
         {
             return;
         }
 
-        if (buckets[index]->full()) 
+        if (buckets[index]->full())
         {
             splitBucket(index);
             return insert(key);
@@ -301,19 +337,19 @@ class ADS_set
         total_elements++;
     }
 
-    void insert(std::initializer_list<key_type> ilist) 
+    void insert(std::initializer_list<key_type> ilist)
     {
-        for (const key_type& key : ilist) 
+        for (const key_type& key : ilist)
         {
             insert(key);
         }
     
     }
     
-    void erase(key_type key)    
+    void erase(key_type key)
     {
         size_type  index =  hasher{}(key) % directory_size;
-        if (!buckets[index]->contains(key))
+        if (!buckets[index]->count(key))
             return;
         buckets[index]->erase(key);
         total_elements--;
@@ -334,6 +370,7 @@ class ADS_set
 };
 
 #endif
+
 
 
 

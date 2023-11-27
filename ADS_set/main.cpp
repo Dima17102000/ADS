@@ -1,6 +1,6 @@
 #include "ADS_set.h"
 #include <iostream>
-
+#include <vector>
 
 // int test_insert_4()
 // {
@@ -155,9 +155,15 @@ int test_constructors(){
     ADS_set<int, 3> my_set_4 = my_set_3;
     my_set_4.dump(std::cout);
     std::cout << std::endl;
-
+    
+    //iterator  constructor
+    std::vector<int> v{1,2,3,4,5,6};
+    ADS_set<int,3> my_set5(v.begin(),v.end());
+    my_set5.dump(std::cout);
+    std::cout << std::endl; 
     return  0;
 }
+
 
 int main() {
     // // Test for default constructor
