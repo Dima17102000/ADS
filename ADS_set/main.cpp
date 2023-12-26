@@ -1,7 +1,10 @@
 #include "ADS_set.h"
 #include <iostream>
 #include <vector>
-
+#include <numeric>
+#include <algorithm>
+#include <random>
+#include <string>
 // int test_insert_4()
 // {
 //   ADS_set<int, 2> my_set(2);
@@ -131,40 +134,85 @@
 //   return 0;
 // }
 
-int test_constructors(){
-    // default constructor
-    ADS_set<int, 3> my_set_1;
-    my_set_1.dump(std::cout);
-    std::cout << std::endl;
+// int test_constructors(){
+//     // default constructor
+//     ADS_set<int, 3> my_set_1;
+//     my_set_1.dump(std::cout);
+//     std::cout << std::endl;
 
-    // constructor with one parameter
-    ADS_set<int, 3> my_set_2(5);
-    my_set_2.dump(std::cout);
-    std::cout << std::endl;
+//     // constructor with one parameter
+//     ADS_set<int, 3> my_set_2(5);
+//     my_set_2.dump(std::cout);
+//     std::cout << std::endl;
 
-    // constructor with initializer list
-    ADS_set<int, 3> my_set_3{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 42, 1231, 5646, 756};
-    my_set_3.dump(std::cout);
-    std::cout << std::endl;
-    my_set_3.insert(526);
-    my_set_3.insert(800);
-    my_set_3.insert(900);
+//     // constructor with initializer list
+//     ADS_set<int, 3> my_set_3{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 42, 1231, 5646, 756};
+//     my_set_3.dump(std::cout);
+//     std::cout << std::endl;
+//     my_set_3.insert(526);
+//     my_set_3.insert(800);
+//     my_set_3.insert(900);
 
 
-    // copy constructor
-    ADS_set<int, 3> my_set_4 = my_set_3;
-    my_set_4.dump(std::cout);
-    std::cout << std::endl;
+//     // copy constructor
+//     ADS_set<int, 3> my_set_4 = my_set_3;
+//     my_set_4.dump(std::cout);
+//     std::cout << std::endl;
     
-    //iterator  constructor
-    std::vector<int> v{1,2,3,4,5,6};
-    ADS_set<int,3> my_set5(v.begin(),v.end());
-    my_set5.dump(std::cout);
-    std::cout << std::endl; 
-    return  0;
+//     //iterator  constructor
+//     std::vector<int> v{1,2,3,4,5,6};
+//     ADS_set<int,3> my_set5(v.begin(),v.end());
+//     my_set5.dump(std::cout);
+//     std::cout << std::endl; 
+//     return  0;
+// }
+
+// clang++ main.cpp  -o main
+
+int teststresstest()
+{
+    size_t  const n = 60;
+    using   my_type = int;
+    std::vector<my_type>  vs(n);
+    std::iota(vs.begin(),vs.end(),0);
+    std::random_shuffle(vs.begin(),vs.end());
+    
+    vs  =   {4,51,11,15,24,35,17,36,26,50,33,39,19,2,47,56,59,18,32,40,5,21,57,12,14,42,27,6,45,58,30,38,13};
+    //ADS_set<my_type,5>  s;
+    
+    
+    ADS_set<my_type,3> s;
+    std::cout<< "s.dir_size = " <<    s.get_depth() <<  std::endl;
+    s.insert(vs.begin(),vs.end());
+    std::cout<<std::endl;
+    std::cout   << "s.size ="   <<  s.size()    <<  std::endl;
+    std::cout   << "s.dir_size = "   <<  s.get_depth() <<  std::endl;    
+    std::cout<<std::endl;
+    s.dump();
+    //s.empty_2();
+    s.test123();
+    s.test124();
+    s.test125();
+    return  1;
 }
 
 
+
+
+/*
+int dumptest()
+{
+  //size_t const n = 10;
+  //using my_type = int;
+  std::vector<std::string>vs={"A","B","C","D","E","F","G","M","K","L"};
+  //std::iota(vs.begin(),vs.end(),0);
+  //std::random_shuffle(vs.begin(),vs.end());
+  ADS_set<std::string,2>s;
+  s.insert(vs.begin(),vs.end());
+  s.dump();
+  return 1;
+}
+*/
 int main() {
     // // Test for default constructor
     // ADS_set<int, 2> my_set_default;
@@ -176,12 +224,13 @@ int main() {
     // std::cout << "Set size is " << my_set_init.size() << std::endl;
 
 
-    test_constructors();
+    // test_constructors();
 
     // int** array = new int[0];
     // for (int i = 0; i < 5; i++){
     //     array[i];
     // }
-
+    teststresstest();
+    //dumptest();
     return 0;
 }

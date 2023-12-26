@@ -3,20 +3,21 @@
 
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 
-//clang++ main.cpp -o main -std=c++17 -ferror-limit=100
 
 template <typename Key, size_t N = 3>
 class ADS_set
 {
     public:
+    //class Iterator;
     using value_type = Key;
     using key_type = Key;
     using reference = value_type&;
     using const_reference = const value_type&;
     using size_type = size_t;
     using difference_type = std::ptrdiff_t;
-    //using const_iterator = /* iterator type */;
+    //using const_iterator = Iterator;
     //using iterator = const_iterator;
     using key_equal = std::equal_to<key_type>;                       // Hashing
     using hasher = std::hash<key_type>;                              // Hashing
@@ -61,23 +62,8 @@ class ADS_set
             }
             return *this;
         }
-        // Bucket& operator=(const Bucket& other)
-        // {
-        //     if (this != &other) // Check for self-assignment
-        //     {
-        //         depth = other.depth;
-        //         size = other.size;
-        //         max_size = other.max_size;
-
-        //         delete[] values; // Free existing memory
-        //         values = new key_type[max_size];
-        //         for (size_type i = 0; i < other.size; ++i)
-        //         {
-        //             values[i] = other.values[i]; // Perform a deep copy of values
-        //         }
-        //     }
-        //     return *this;
-        // }
+        
+        
     
         void increase_depth() { // has to be private so that user can't sabotage the algorithm
             depth++;
@@ -90,7 +76,12 @@ class ADS_set
         size_type get_depth() const {
             return depth;
         }
-
+        
+        size_type get_size()const
+        {
+         return size;
+        }
+        
         key_type get_value(size_type index) const
         {
             if(index  < size){
@@ -164,12 +155,12 @@ class ADS_set
             }
         }
     };
-
     private:
     Bucket** buckets;
     size_type depth;
     size_type directory_size;
     size_type total_elements;
+   
     
     void insertToBucket(size_type index,key_type key) {
         buckets[index]->insert(key);
@@ -189,20 +180,40 @@ class ADS_set
         directory_size = new_directory_size;
         
         depth++;
-    }
-
-    void splitBucket(size_type index)
-    {
+     }
+     
+     void splitBucket(size_type index)
+     {
+        get_bucket_first_index(index);
+        size_type first_meet_index = get_bucket_first_index(index);
+        size_type distance = get_bucket_distance(index);
+        
         Bucket* bucket = buckets[index];
-        if (bucket->get_capacity() < N)
-            return;
         bucket->increase_depth();
         Bucket* newBucket = new Bucket(bucket->get_depth());
-      
         if(bucket->get_depth() > depth) {
             expandDirectory();
         }
-        buckets[index] = newBucket;
+        
+        //size_type bucket_count = pow(2,(depth - (buckets[index]->get_depth()-1)));
+        /*
+        size_type bucket_count = 1;
+    		size_type bucket_depth = depth - (buckets[index]->get_depth() - 1);
+    		while (bucket_depth > 0) 
+    		{	
+        		bucket_count *= 2;
+        		--bucket_depth;
+    		}
+    		
+        // finding of positions for newBucket and rewriting them
+        size_type distance = directory_size / bucket_count; 
+       */
+        for(size_type i = first_meet_index; i < directory_size;i+=2*distance)
+        {   // it gives us the first time meeting index in our directory.
+        		buckets[i] = newBucket;
+        }
+        
+        // delete elements from old bucket and reinsert them to set(recursively)
         value_type* temp = new key_type[N];
         for (size_type i = 0; i < N; ++i) {
             temp[i] = bucket->get_value(i);
@@ -215,7 +226,7 @@ class ADS_set
             this->insert(temp[i]);
         }
         delete[] temp;
-    }
+     }
    
     public:
     ADS_set() : ADS_set(4)
@@ -223,13 +234,14 @@ class ADS_set
 
     }
     
-    // argument with default value
+  
     ADS_set(size_type directory_size1): depth(0), directory_size(directory_size1), total_elements(0)
     {
-        if(directory_size   < 1)
+        if(directory_size  < 1)
         {
             directory_size  =  1;
         }
+        
         buckets = new Bucket*[directory_size];
         for (size_type i = 0; i < directory_size; ++i)
         {
@@ -245,51 +257,110 @@ class ADS_set
         }
     }
 
+
     template<typename InputIt>
-    ADS_set(InputIt first,InputIt last):ADS_set(2 * std::distance(first, last) / N)
+    ADS_set(InputIt first,InputIt last):ADS_set(4)//ADS_set(2 * std::distance(first, last) / N)
     {
         for (InputIt it = first; it != last; ++it) {
             insert(*it);
         }
     }
 
-    ADS_set(const ADS_set& other) : ADS_set(other.directory_size)
+    ADS_set(const ADS_set& other) : ADS_set(other.directory_size) //doesn't work correctly
     {
         depth = other.depth;
         directory_size = other.directory_size;
         total_elements = other.total_elements;
         
         for (size_type i = 0; i < directory_size; ++i) {
-            // buckets[i] = new Bucket(*(other.buckets[i])); // Assuming Bucket has a copy constructor
             *buckets[i] = *other.buckets[i];
         }
     }
+     
+    ~ADS_set() 
+   {
+        
+        std::sort(buckets, buckets + directory_size);
+    		for (size_type i = 0; i < directory_size; ++i)
+    		{
+        		if (i > 0 && buckets[i - 1] == buckets[i]) 
+        		{
+            		continue; // Überspringe doppelte Zeiger
+        		}
+         		delete buckets[i];
+    		}
+    		delete[] buckets;
+    		
+    		
     
-    
-    template<typename InputIt>
-    void insert(InputIt first, InputIt last)
-    {
-        for (InputIt it = first; it != last; ++it)
-        {
-            insert(*it);
+    /*		
+    bool* encountered = new bool[directory_size](); // Массив для отслеживания встреченных бакетов
+
+    // Пометим встреченные бакеты
+    for (size_type i = 0; i < directory_size; ++i) {
+        size_type first_index = get_bucket_first_index(i);
+
+        if (!encountered[first_index]) {
+            encountered[first_index] = true;
         }
     }
-    
-    ~ADS_set()
-    {
-        for(size_type i = 0; i  < directory_size; i++)
-        {
-            bool pointer_is_unique = true;
-            for (size_type j = 0; j < i; j++)
-            {
-                if (buckets[i] == buckets[j]) pointer_is_unique = false;
-            }
-            if (pointer_is_unique)
-                delete buckets[i];
+
+    // Удалим только бакеты, встречающиеся впервые
+    for (size_type i = 0; i < directory_size; ++i) {
+        if (encountered[i]) {
+            delete buckets[i];
         }
-        delete[] buckets;
     }
-  
+
+    delete[] encountered; // Очистим память, выделенную для массива encountered
+    delete[] buckets; // Удалим массив указателей на бакеты
+    */
+    /*
+    bool* encountered = new bool[directory_size](); // Массив для отслеживания встреченных бакетов
+
+    // Пометим встреченные бакеты
+    for (size_type i = 0; i < directory_size; ++i) {
+        if (bucket_encounter_first_time(i)) {
+            encountered[i] = true;
+        }
+    }
+
+    // Удалим только бакеты, встречающиеся впервые
+    for (size_type i = 0; i < directory_size; ++i) {
+        if (encountered[i]) {
+            delete buckets[i];
+        }
+    }
+
+    delete[] encountered; // Очистим память, выделенную для массива encountered
+    delete[] buckets; // Удалим массив указателей на бакеты
+    */
+    
+    // Пометим встреченные бакеты и удалим их сразу же
+    	/*
+			for (size_type i = 0; i < directory_size; ++i) 
+			{
+    			if (!bucket_encounter_first_time(i)) 
+    			{
+        		delete buckets[i];
+        		break;
+    			}
+    	}
+    	delete[] buckets; // Очистим память, выделенную для массива указателей 
+    	*/
+    	
+    	/*
+    	for (size_type i = 0; i < directory_size; ++i) {
+        if (bucket_encounter_first_time(i)) {
+            break;
+        }
+        delete buckets[i];
+    }
+    delete[] buckets;
+    */
+    
+    
+   }
  
     size_type size() const
     {
@@ -298,9 +369,11 @@ class ADS_set
 
     void dump(std::ostream& o =std::cerr) const
     {
+        o << "global_depth = " << depth << std::endl;
         for(size_type i{0}; i < directory_size; i++)
         {
             buckets[i]->dump(o);
+            o << "d=" << buckets[i]->get_depth() << "  " << (buckets[i]);
             o << std::endl;
         }
 
@@ -318,6 +391,11 @@ class ADS_set
     {
         size_type index = hasher{}(key) % directory_size;
         return buckets[index]->count(key);
+    }
+    
+    size_type get_depth()	const
+    {
+     		return depth;
     }
 
     void insert(key_type key)
@@ -346,6 +424,44 @@ class ADS_set
     
     }
     
+    size_type get_bucket_first_index(size_type index)
+    {
+     size_type bucket_delay = depth - (buckets[index]->get_depth());
+     size_type bucket_count = 1;
+     while(bucket_delay > 0)
+     {
+      bucket_count *= 2;
+      --bucket_delay;
+     }
+     size_type distance = directory_size/bucket_count;
+     size_type first_meet_index = index % distance;
+     
+     return first_meet_index;
+    }
+    
+    size_type get_bucket_distance(size_type index)
+    {
+     size_type bucket_delay = depth - (buckets[index]->get_depth());
+     size_type bucket_count = 1;
+     while(bucket_delay > 0)
+     {
+      bucket_count *= 2;
+      --bucket_delay;
+     }
+     size_type distance = directory_size/bucket_count;
+     return distance;
+    }
+    
+    
+    template<typename InputIt>
+    void insert(InputIt first, InputIt last)
+    {
+        for (InputIt it = first; it != last; ++it)
+        {
+            insert(*it);
+        }
+    }
+    
     void erase(key_type key)
     {
         size_type  index =  hasher{}(key) % directory_size;
@@ -367,23 +483,165 @@ class ADS_set
     {
         return total_elements == 0;
     }
+    
+    void test123()
+		{
+		  ADS_set<value_type,N> uniqueElements; 
+		  std::cout << "\n";
+    	for(size_t index{0}; index < directory_size; index++) 
+    	{ 
+    			for(size_t i{0}; i < buckets[index]->get_size(); i++) 
+     			{
+      				value_type element = buckets[index]->get_value(i);
+      				if(uniqueElements.count(element) == 0) 
+      				{
+       			   		std::cout << element << " ";
+       				 		uniqueElements.insert(element);
+      				}
+     			}
+    	 }
+		}
+		
+		void test124()
+		{
+				ADS_set<Bucket*,N> uniqueBuckets;
+				std::cout << "\n"; 
+				for (size_t index{0}; index < directory_size; index++) 
+				{
+		  			if (uniqueBuckets.count(buckets[index]) == 0) 
+		  			{	
+							uniqueBuckets.insert(buckets[index]);
+							for (size_t i{0}; i < buckets[index]->get_size(); i++) 
+							{
+		          		value_type element = buckets[index]->get_value(i);
+		         	 		std::cout << element << " ";
+							}
+		  			}
+		 		}
+		 		std::cout << std::endl;
+		 }
+		 
+		 /*Method bucket_encounter_first_time will return true if
+     our bucket meets only first time. This method must filter out duplicates adresses, which repeats. Only return 
+     first_encounter. 
+     */
+     
+     /*
+		 bool bucket_encounter_first_time(size_type index)
+		 {
+		  key_type key;
+		  size_type  hash_index =  hasher{}(key) % directory_size;
+		  if(hash_index == index && buckets[index]->count(key) == 0)
+		  {
+		   return true;
+		  }
+		  return false;
+		 }
+		 */
+		 /*
+		 bool bucket_encounter_first_time(size_type index)
+		{
+    	size_type hash_index = index % directory_size;
+    	size_type bucket_count = 1;
+    	size_type bucket_depth = depth - (buckets[index]->get_depth() - 1);
+
+    	// Calculate the bucket_count as per your notes
+    	while (bucket_depth > 0) 
+    	{
+        bucket_count *= 2;
+        --bucket_depth;
+    	}
+
+    // Calculate the distance between encountered instances of the same bucket
+    size_type distance = directory_size / bucket_count;
+
+    // Check if the current index matches the first occurrence of the bucket
+    	if (index % distance == hash_index && buckets[index]->count(key_type()) == 0)
+    	{
+        return true; // First encounter of this bucket
+    	}
+
+    	return false; // Bucket encountered before
+		}		
+		*/
+		
+		 
+		 void test125()
+		 {
+		  for (size_t index{0}; index < directory_size; index++)
+    {
+        if (bucket_encounter_first_time(index)) // Проверяем, был ли бакет обработан
+        {
+            for (size_t i{0}; i < buckets[index]->get_size(); i++)
+            {
+                value_type element = buckets[index]->get_value(i);
+                std::cout << element << " ";
+            }
+        }
+    }
+    	std::cout << std::endl;
+		 }
+		 
+		 bool bucket_encounter_first_time(size_type index)
+		 {
+		  return get_bucket_first_index(index) == index;
+		 }
+};
+/*
+std::set<value_type> uniqueElements; 
+for(size_t index{0}; index < directory_size; index++) 
+{
+ for(size_t i{0}; i < bucket[index]->get_size(); i++) 
+ {
+     value_type element = buckets[index]->get_value(i);
+     if(uniqueElements.count(element) == 0) 
+     {
+      std::cout << element << " "; 
+      uniqueElements.insert(element);
+     }
+ }
+}
+*/
+
+/*
+Iterator begin()
+{
+  for(size_type i{0}; i  < directory_size(); i++)
+  if(bucket[i]->get_size() == 0)
+  {
+    return this->end();
+  }
+  
+ return iterator(e,this);
+}
+
+Iterator end()
+{
+ return Iterator{e+size,this};
+}
+
+template <typename Key, size_t N>
+class ADS_set<Key,N>::Iterator {
+   value_type* e;
+   value_type elem_index;
+   value_type bucket_index;
+   
+	public:
+  	using value_type = Key;
+  	using difference_type = std::ptrdiff_t;
+  	using reference = const value_type &;
+  	using pointer = const value_type *;
+  	using iterator_category = std::forward_iterator_tag;
+
+  	explicit Iterator(value_type *e, value_type boundory): e{e}{}
+  	reference operator*() const {return *e;}
+  	pointer 	operator->() const {return e;}
+  	Iterator &operator++() {++e;return *e;}
+  	Iterator operator++(int) {}
+  	friend bool operator==(const Iterator &lhs, const Iterator &rhs) {}
+  	friend bool operator!=(const Iterator &lhs, const Iterator &rhs) {}
 };
 
+*/
+
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
