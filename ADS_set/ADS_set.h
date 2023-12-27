@@ -279,7 +279,7 @@ class ADS_set
      
     ~ADS_set() 
    {
-        
+        /*
         std::sort(buckets, buckets + directory_size);
     		for (size_type i = 0; i < directory_size; ++i)
     		{
@@ -290,7 +290,7 @@ class ADS_set
          		delete buckets[i];
     		}
     		delete[] buckets;
-    		
+    	*/
     		
     
     /*		
@@ -349,7 +349,7 @@ class ADS_set
     	delete[] buckets; // Очистим память, выделенную для массива указателей 
     	*/
     	
-    	/*
+    	
     	for (size_type i = 0; i < directory_size; ++i) {
         if (bucket_encounter_first_time(i)) {
             break;
@@ -357,7 +357,7 @@ class ADS_set
         delete buckets[i];
     }
     delete[] buckets;
-    */
+    
     
     
    }
