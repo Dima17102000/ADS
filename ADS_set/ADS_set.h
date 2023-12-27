@@ -279,82 +279,16 @@ class ADS_set
      
     ~ADS_set() 
    {
-        /*
-        std::sort(buckets, buckets + directory_size);
-    		for (size_type i = 0; i < directory_size; ++i)
-    		{
-        		if (i > 0 && buckets[i - 1] == buckets[i]) 
-        		{
-            		continue; // Überspringe doppelte Zeiger
-        		}
-         		delete buckets[i];
-    		}
-    		delete[] buckets;
-    	*/
-    		
-    
-    /*		
-    bool* encountered = new bool[directory_size](); // Массив для отслеживания встреченных бакетов
-
-    // Пометим встреченные бакеты
-    for (size_type i = 0; i < directory_size; ++i) {
-        size_type first_index = get_bucket_first_index(i);
-
-        if (!encountered[first_index]) {
-            encountered[first_index] = true;
-        }
-    }
-
-    // Удалим только бакеты, встречающиеся впервые
-    for (size_type i = 0; i < directory_size; ++i) {
-        if (encountered[i]) {
-            delete buckets[i];
-        }
-    }
-
-    delete[] encountered; // Очистим память, выделенную для массива encountered
-    delete[] buckets; // Удалим массив указателей на бакеты
-    */
-    /*
-    bool* encountered = new bool[directory_size](); // Массив для отслеживания встреченных бакетов
-
-    // Пометим встреченные бакеты
-    for (size_type i = 0; i < directory_size; ++i) {
-        if (bucket_encounter_first_time(i)) {
-            encountered[i] = true;
-        }
-    }
-
-    // Удалим только бакеты, встречающиеся впервые
-    for (size_type i = 0; i < directory_size; ++i) {
-        if (encountered[i]) {
-            delete buckets[i];
-        }
-    }
-
-    delete[] encountered; // Очистим память, выделенную для массива encountered
-    delete[] buckets; // Удалим массив указателей на бакеты
-    */
-    
-    // Пометим встреченные бакеты и удалим их сразу же
-    	/*
-			for (size_type i = 0; i < directory_size; ++i) 
-			{
-    			if (!bucket_encounter_first_time(i)) 
-    			{
-        		delete buckets[i];
-        		break;
-    			}
-    	}
-    	delete[] buckets; // Очистим память, выделенную для массива указателей 
-    	*/
-    	
-    	
+      std::cout << "Hello World!!"; 
     	for (size_type i = 0; i < directory_size; ++i) {
+    	std::cout << "Hello World!!"; 
         if (bucket_encounter_first_time(i)) {
-            break;
+          delete buckets[i];
         }
-        delete buckets[i];
+        else
+        {
+         continue;
+        }
     }
     delete[] buckets;
     
