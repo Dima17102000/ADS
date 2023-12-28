@@ -279,9 +279,81 @@ class ADS_set
      
     ~ADS_set() 
    {
-      std::cout << "Hello World!!"; 
-    	for (size_type i = 0; i < directory_size; ++i) {
-    	std::cout << "Hello World!!"; 
+        /*
+        std::sort(buckets, buckets + directory_size);
+    		for (size_type i = 0; i < directory_size; ++i)
+    		{
+        		if (i > 0 && buckets[i - 1] == buckets[i]) 
+        		{
+            		continue; // Überspringe doppelte Zeiger
+        		}
+         		delete buckets[i];
+    		}
+    		delete[] buckets;
+    		*/
+    		
+    
+    /*
+    bool* encountered = new bool[directory_size](); // Массив для отслеживания встреченных бакетов
+
+    // Пометим встреченные бакеты
+    for (size_type i = 0; i < directory_size; ++i) {
+        size_type first_index = get_bucket_first_index(i);
+
+        if (!encountered[first_index]) {
+            encountered[first_index] = true;
+        }
+    }
+
+    // Удалим только бакеты, встречающиеся впервые
+    for (size_type i = 0; i < directory_size; ++i) {
+        if (encountered[i]) {
+            delete buckets[i];
+        }
+    }
+
+    delete[] encountered; // Очистим память, выделенную для массива encountered
+    delete[] buckets; // Удалим массив указателей на бакеты
+    */
+    
+    
+    bool* encountered = new bool[directory_size](); // Массив для отслеживания встреченных бакетов
+
+    // Пометим встреченные бакеты
+    for (size_type i = 0; i < directory_size; ++i) {
+        if (bucket_encounter_first_time(i)) {
+            encountered[i] = true;
+        }
+    }
+
+    // Удалим только бакеты, встречающиеся впервые
+    for (size_type i = 0; i < directory_size; ++i) {
+        if (encountered[i]) {
+            delete buckets[i];
+        }
+    }
+
+    delete[] encountered; // Очистим память, выделенную для массива encountered
+    delete[] buckets; // Удалим массив указателей на бакеты
+    
+    
+    // Пометим встреченные бакеты и удалим их сразу же
+    	/*
+			for (size_type i = 0; i < directory_size; ++i) 
+			{
+    			if (!bucket_encounter_first_time(i)) 
+    			{
+        		delete buckets[i];
+        		break;
+    			}
+    	}
+    	delete[] buckets; // Очистим память, выделенную для массива указателей 
+    	*/
+    	
+    	 // Destructor  NEW WITH REVERSE AS WAS DISCUSSED
+    	/*
+    	for (size_type i = directory_size-1; i >= 0;) {
+    		--i;
         if (bucket_encounter_first_time(i)) {
           delete buckets[i];
         }
@@ -291,7 +363,7 @@ class ADS_set
         }
     }
     delete[] buckets;
-    
+    */
     
     
    }
@@ -501,9 +573,9 @@ class ADS_set
 		
 		 
 		 void test125()
-		 {
+		 { /*
 		  for (size_t index{0}; index < directory_size; index++)
-    {
+    	{
         if (bucket_encounter_first_time(index)) // Проверяем, был ли бакет обработан
         {
             for (size_t i{0}; i < buckets[index]->get_size(); i++)
@@ -512,9 +584,44 @@ class ADS_set
                 std::cout << element << " ";
             }
         }
+    	}
+    		std::cout << std::endl;
+    		*/
+    /*		
+    size_type index = 0;
+    while (index < directory_size) 
+    {
+        if (bucket_encounter_first_time(index)) {
+            size_type i = 0;
+            while (i < buckets[index]->get_size()) {
+                value_type element = buckets[index]->get_value(i);
+                std::cout << element << " ";
+                i++;
+            }
+        }
+        index++;
     }
-    	std::cout << std::endl;
-		 }
+     std::cout << std::endl;
+     */
+    size_type index = 0;
+    size_type i = 0;
+    while (index < directory_size) 
+    {
+        if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
+        {
+            value_type element = buckets[index]->get_value(i);
+            std::cout << element << " ";
+            i++;
+        } 
+        
+        else 
+        {
+            index++;
+            i = 0;
+        }
+    }
+     std::cout << std::endl;
+		}
 		 
 		 bool bucket_encounter_first_time(size_type index)
 		 {
