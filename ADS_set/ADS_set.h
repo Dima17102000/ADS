@@ -279,93 +279,16 @@ class ADS_set
      
     ~ADS_set() 
    {
-        /*
-        std::sort(buckets, buckets + directory_size);
-    		for (size_type i = 0; i < directory_size; ++i)
-    		{
-        		if (i > 0 && buckets[i - 1] == buckets[i]) 
-        		{
-            		continue; // Überspringe doppelte Zeiger
-        		}
-         		delete buckets[i];
-    		}
-    		delete[] buckets;
-    		*/
-    		
-    
-    /*
-    bool* encountered = new bool[directory_size](); // Массив для отслеживания встреченных бакетов
-
-    // Пометим встреченные бакеты
-    for (size_type i = 0; i < directory_size; ++i) {
-        size_type first_index = get_bucket_first_index(i);
-
-        if (!encountered[first_index]) {
-            encountered[first_index] = true;
-        }
-    }
-
-    // Удалим только бакеты, встречающиеся впервые
-    for (size_type i = 0; i < directory_size; ++i) {
-        if (encountered[i]) {
-            delete buckets[i];
-        }
-    }
-
-    delete[] encountered; // Очистим память, выделенную для массива encountered
-    delete[] buckets; // Удалим массив указателей на бакеты
-    */
-    
-    
-    bool* encountered = new bool[directory_size](); // Массив для отслеживания встреченных бакетов
-
-    // Пометим встреченные бакеты
-    for (size_type i = 0; i < directory_size; ++i) {
-        if (bucket_encounter_first_time(i)) {
-            encountered[i] = true;
-        }
-    }
-
-    // Удалим только бакеты, встречающиеся впервые
-    for (size_type i = 0; i < directory_size; ++i) {
-        if (encountered[i]) {
-            delete buckets[i];
-        }
-    }
-
-    delete[] encountered; // Очистим память, выделенную для массива encountered
-    delete[] buckets; // Удалим массив указателей на бакеты
-    
-    
-    // Пометим встреченные бакеты и удалим их сразу же
-    	/*
-			for (size_type i = 0; i < directory_size; ++i) 
-			{
-    			if (!bucket_encounter_first_time(i)) 
-    			{
-        		delete buckets[i];
-        		break;
-    			}
-    	}
-    	delete[] buckets; // Очистим память, выделенную для массива указателей 
-    	*/
-    	
-    	 // Destructor  NEW WITH REVERSE AS WAS DISCUSSED
-    	/*
-    	for (size_type i = directory_size-1; i >= 0;) {
-    		--i;
-        if (bucket_encounter_first_time(i)) {
-          delete buckets[i];
-        }
-        else
+        
+    	for (size_type i = directory_size; i > 0;) 
+    	{
+        --i;
+        if (bucket_encounter_first_time(i)) 
         {
-         continue;
+            delete buckets[i];
         }
-    }
-    delete[] buckets;
-    */
-    
-    
+    	}
+    	delete[] buckets;
    }
  
     size_type size() const
@@ -403,6 +326,7 @@ class ADS_set
     {
      		return depth;
     }
+    
 
     void insert(key_type key)
     {
@@ -527,122 +451,46 @@ class ADS_set
 		 		std::cout << std::endl;
 		 }
 		 
-		 /*Method bucket_encounter_first_time will return true if
-     our bucket meets only first time. This method must filter out duplicates adresses, which repeats. Only return 
-     first_encounter. 
-     */
-     
-     /*
-		 bool bucket_encounter_first_time(size_type index)
-		 {
-		  key_type key;
-		  size_type  hash_index =  hasher{}(key) % directory_size;
-		  if(hash_index == index && buckets[index]->count(key) == 0)
-		  {
-		   return true;
-		  }
-		  return false;
-		 }
-		 */
-		 /*
-		 bool bucket_encounter_first_time(size_type index)
-		{
-    	size_type hash_index = index % directory_size;
-    	size_type bucket_count = 1;
-    	size_type bucket_depth = depth - (buckets[index]->get_depth() - 1);
-
-    	// Calculate the bucket_count as per your notes
-    	while (bucket_depth > 0) 
-    	{
-        bucket_count *= 2;
-        --bucket_depth;
-    	}
-
-    // Calculate the distance between encountered instances of the same bucket
-    size_type distance = directory_size / bucket_count;
-
-    // Check if the current index matches the first occurrence of the bucket
-    	if (index % distance == hash_index && buckets[index]->count(key_type()) == 0)
-    	{
-        return true; // First encounter of this bucket
-    	}
-
-    	return false; // Bucket encountered before
-		}		
-		*/
+		 
 		
 		 
 		 void test125()
-		 { /*
-		  for (size_t index{0}; index < directory_size; index++)
-    	{
-        if (bucket_encounter_first_time(index)) // Проверяем, был ли бакет обработан
-        {
-            for (size_t i{0}; i < buckets[index]->get_size(); i++)
-            {
-                value_type element = buckets[index]->get_value(i);
-                std::cout << element << " ";
-            }
-        }
-    	}
-    		std::cout << std::endl;
-    		*/
-    /*		
-    size_type index = 0;
-    while (index < directory_size) 
-    {
-        if (bucket_encounter_first_time(index)) {
-            size_type i = 0;
-            while (i < buckets[index]->get_size()) {
-                value_type element = buckets[index]->get_value(i);
-                std::cout << element << " ";
-                i++;
-            }
-        }
-        index++;
-    }
-     std::cout << std::endl;
-     */
-    size_type index = 0;
-    size_type i = 0;
-    while (index < directory_size) 
-    {
-        if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
-        {
-            value_type element = buckets[index]->get_value(i);
-            std::cout << element << " ";
-            i++;
-        } 
-        
-        else 
-        {
-            index++;
-            i = 0;
-        }
-    }
-     std::cout << std::endl;
-		}
+		 { 
+     		size_type index = 0;
+		 		size_type i = 0;
+			
+				while (true) 
+				{
+    				if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
+    				{
+        			value_type element = buckets[index]->get_value(i);
+        			std::cout << element << " ";
+        			i++;
+    				} 
+    			
+    				else 
+    				{
+        			index++;
+        			i = 0;
+    				}
+
+    				if (index >= directory_size) 
+    				{
+        			break;
+    				}
+				}
+				std::cout << std::endl;
+			}
+		 
 		 
 		 bool bucket_encounter_first_time(size_type index)
 		 {
 		  return get_bucket_first_index(index) == index;
 		 }
+		 
+		
 };
-/*
-std::set<value_type> uniqueElements; 
-for(size_t index{0}; index < directory_size; index++) 
-{
- for(size_t i{0}; i < bucket[index]->get_size(); i++) 
- {
-     value_type element = buckets[index]->get_value(i);
-     if(uniqueElements.count(element) == 0) 
-     {
-      std::cout << element << " "; 
-      uniqueElements.insert(element);
-     }
- }
-}
-*/
+
 
 /*
 Iterator begin()
@@ -661,28 +509,54 @@ Iterator end()
  return Iterator{e+size,this};
 }
 
+
 template <typename Key, size_t N>
-class ADS_set<Key,N>::Iterator {
-   value_type* e;
-   value_type elem_index;
-   value_type bucket_index;
-   
+class ADS_set<Key,N>::Iterator 
+{
+   value_type** e;
+   size_type elem_index;
+   size_type dir_index;
+   size_type directory_size;   
 	public:
   	using value_type = Key;
   	using difference_type = std::ptrdiff_t;
   	using reference = const value_type &;
   	using pointer = const value_type *;
   	using iterator_category = std::forward_iterator_tag;
+  	using size_type = size_t;
 
-  	explicit Iterator(value_type *e, value_type boundory): e{e}{}
+  	explicit Iterator(value_type *e, value_type elem_index, value_type dir_index, size_type directory_size): e{e},elem_index{elem_index},dir_index{dir_index},directory_size{directory_size}{}
   	reference operator*() const {return *e;}
   	pointer 	operator->() const {return e;}
-  	Iterator &operator++() {++e;return *e;}
+  	Iterator &operator++()
+  	{
+     while (dir_index < directory_size) 
+     {
+        if (bucket_encounter_first_time(dir_index) && elem_index < buckets[dir_index]->get_size()) 
+        {
+            value_type element = buckets[dir_index]->get_value(elem_index);
+            std::cout << element << " ";
+            elem_index++;
+        } 
+        
+        else 
+        {
+            dir_index++;
+            elem_index = 0;
+        }
+     }
+     std::cout << std::endl;
+		}
+  	 return *e;
+  	 }
   	Iterator operator++(int) {}
   	friend bool operator==(const Iterator &lhs, const Iterator &rhs) {}
   	friend bool operator!=(const Iterator &lhs, const Iterator &rhs) {}
+  	
+}
+  	
 };
-
 */
+
 
 #endif
