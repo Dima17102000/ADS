@@ -431,8 +431,8 @@ class ADS_set
    	}
 
 
-    void test124()
-	  { 
+   void test124()
+  { 
 		  	ADS_set<Bucket*,N> uniqueBuckets;
 		  	std::cout << "\n"; 
 				for (size_t index{0}; index < directory_size; index++) 
@@ -448,7 +448,7 @@ class ADS_set
 		  			}
 		 	 	}
 		 		std::cout << std::endl;
-	   }
+  }
 		 
 		 
 		
