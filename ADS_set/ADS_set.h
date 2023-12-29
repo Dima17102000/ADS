@@ -458,7 +458,7 @@ class ADS_set
        size_type index = 0;
        size_type i = 0;
 
-       while (true) 
+        while (true) 
        { 
            if (index >= directory_size) 
            {
