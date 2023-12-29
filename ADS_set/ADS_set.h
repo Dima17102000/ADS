@@ -469,20 +469,20 @@ class ADS_set
     		{
         		if (bucket_encounter_first_time(index)) 
         		{
-            		value_type element = buckets[index]->get_value(i);
-            		std::cout << element << " ";
+            	       value_type element = buckets[index]->get_value(i);
+            		   std::cout << element << " ";
         		}
-        		i++;
-    		}
+                 i++;
+    	    }
     
-    		else 
-    		{
-								i = 0;
-								index++;
-    		}
+    	    else 
+    	    {
+        	   i = 0;
+        	   index++;
+    	    }
   		}
 
-	}
+	 }
 		 
 		 
 	bool bucket_encounter_first_time(size_type index)
