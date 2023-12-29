@@ -457,9 +457,9 @@ class ADS_set
 		 void test125()
 		 { 
      		 size_type index = 0;
-		 		 size_type i = 0;
+		 	 size_type i = 0;
 			
-					while (true) 
+			 while (true) 
 			{
     					if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
     					{
@@ -479,7 +479,7 @@ class ADS_set
         						break;
     					}
 			}
-					std::cout << std::endl;
+		  std::cout << std::endl;
 		}
 		 
 		 
