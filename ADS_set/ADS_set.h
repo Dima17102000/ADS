@@ -279,14 +279,14 @@ class ADS_set
      
     ~ADS_set() 
     {
-      for (size_type i = directory_size; i > 0; --i) 
-    	{
-        	if (bucket_encounter_first_time(i - 1)) 
-        	{
-            	delete buckets[i - 1];
-        	}
-    	}
-    		delete[] buckets;
+       for (size_type i = directory_size; i > 0; --i) 
+       {
+          if (bucket_encounter_first_time(i - 1)) 
+          {
+            delete buckets[i - 1];
+          }
+       }
+      delete[] buckets;
     }
  
     size_type size() const
