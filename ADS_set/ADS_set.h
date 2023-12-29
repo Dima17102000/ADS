@@ -420,7 +420,7 @@ class ADS_set
        { 
            for(size_t i{0}; i < buckets[index]->get_size(); i++) 
            {
-                value_type element = buckets[index]->get_value(i);
+              value_type element = buckets[index]->get_value(i);
               if(uniqueElements.count(element) == 0) 
               {
                 std::cout << element << " ";
@@ -438,7 +438,7 @@ class ADS_set
        for (size_t index{0}; index < directory_size; index++) 
        {
               if (uniqueBuckets.count(buckets[index]) == 0) 
-		  	      {	
+              {	
                 uniqueBuckets.insert(buckets[index]);
                 for (size_t i{0}; i < buckets[index]->get_size(); i++) 
                 {
