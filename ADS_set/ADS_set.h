@@ -480,7 +480,7 @@ class ADS_set
     					}
 			}
 					std::cout << std::endl;
-			}
+		}
 		 
 		 
 		 bool bucket_encounter_first_time(size_type index)
