@@ -452,44 +452,43 @@ class ADS_set
 		 
 		 
 		
-		 
-	void test125()
-	{ 
-		size_type index = 0;
-		size_type i = 0;
 
-		while (true) 
-		{
-    			if (index >= directory_size) 
-    			{
-        			break;
-    			}
+     void test125()
+     { 
+       size_type index = 0;
+       size_type i = 0;
+
+       while (true) 
+       { 
+           if (index >= directory_size) 
+           {
+              break;
+           }
 
     	
-    			if (i < buckets[index]->get_size())
-    			{
-        		 	if (bucket_encounter_first_time(index)) 
-        		 	{
-												value_type element = buckets[index]->get_value(i);
-            				std::cout << element << " ";
-        		 	}
-        	 	i++;
-    			}
+           if (i < buckets[index]->get_size())
+           {
+              if (bucket_encounter_first_time(index)) 
+              {
+                value_type element = buckets[index]->get_value(i);
+                std::cout << element << " ";
+              }
+             i++;
+           }
     
-    			else 
-    			{
-        			 i = 0;
-        			 index++;
-    			}
-		}
-
-	}
+           else 
+           {
+               i = 0;
+               index++;
+           }
+       }
+     }
 		 
 		 
-	bool bucket_encounter_first_time(size_type index)
-	{
-		 return get_bucket_first_index(index) == index;
-	}
+     bool bucket_encounter_first_time(size_type index)
+     {
+        return get_bucket_first_index(index) == index;
+     }
 		 
 		
 };
