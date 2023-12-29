@@ -456,8 +456,8 @@ class ADS_set
 		 
 	void test125()
 	{ 
-        size_type  index = 0;
-        size_type  i = 0;
+            size_type  index = 0;
+            size_type  i = 0;
 			
 			 while (true) 
 			{
