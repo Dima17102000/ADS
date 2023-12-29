@@ -463,8 +463,7 @@ class ADS_set
         
          		while(true)
 				{
-					if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
-          {
+					if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) {
                value_type element = buckets[index]->get_value(i);
                std::cout << element << " ";
                i++;
