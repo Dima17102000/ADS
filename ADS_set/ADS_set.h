@@ -427,16 +427,16 @@ class ADS_set
                         uniqueElements.insert(element); 
       			 }
      		  }
-     	}
+      }
      }
 
 
      void test124()
      { 
       ADS_set<Bucket*,N> uniqueBuckets;
-      std::cout << "\n"; 
-			for (size_t index{0}; index < directory_size; index++) 
-			{
+      std::cout << "\n";
+      for (size_t index{0}; index < directory_size; index++) 
+      {
 		  	     if (uniqueBuckets.count(buckets[index]) == 0) 
 		  	    {	
 					     uniqueBuckets.insert(buckets[index]);
@@ -446,7 +446,7 @@ class ADS_set
               std::cout << element << " ";
 					  }
 		  	  }
-		 	}
+      }
 		 		std::cout << std::endl;
      }
 		 
