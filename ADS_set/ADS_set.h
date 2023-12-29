@@ -456,28 +456,28 @@ class ADS_set
 		 
 		 void test125()
 		 { 
-     		size_type index = 0;
-		 	size_type i = 0;
+     	size_type  index = 0;
+		 	size_type  i = 0;
 			
 			 while (true) 
 			{
-    			if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
-    			{
-        			value_type element = buckets[index]->get_value(i);
-        			std::cout << element << " ";
-        			i++;
-    			} 
+    				if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
+    				{
+        				value_type element = buckets[index]->get_value(i);
+        				std::cout << element << " ";
+        				i++;
+    				} 
     			
-    			else 
-    			{
-        			index++;
-        			i = 0;
-    			}
+    				else 
+    				{
+        				index++;
+        				i = 0;
+    				}
 
-    			if (index >= directory_size) 
-    			{
-        			break;
-    			}
+    				if (index >= directory_size) 
+    				{
+        				break;
+    				}
 			}
 		  std::cout << std::endl;
 		}
