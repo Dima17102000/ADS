@@ -279,16 +279,14 @@ class ADS_set
      
     ~ADS_set() 
     {
-        
-    	for (size_type i = directory_size; i > 0;) 
+      for (size_type i = directory_size; i > 0; --i) 
     	{
-          --i;
-           if (bucket_encounter_first_time(i)) 
-           {
-              delete buckets[i];
-           }
+        	if (bucket_encounter_first_time(i - 1)) 
+        	{
+            	delete buckets[i - 1];
+        	}
     	}
-       delete[] buckets;
+    		delete[] buckets;
     }
  
     size_type size() const
@@ -456,30 +454,34 @@ class ADS_set
 		 
 	void test125()
 	{ 
-                size_type  index = 0;
-                size_type  i = 0;
-			
-			 while (true) 
-			{
-    				if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
-    				{
-        				value_type element = buckets[index]->get_value(i);
-        				std::cout << element << " ";
-        				i++;
-    				} 
-    			
-    				else 
-    				{
-        				index++;
-        				i = 0;
-    				}
+			size_type index = 0;
+			size_type i = 0;
 
-    				if (index >= directory_size) 
-    				{
-        				break;
-    				}
-			}
-		 std::cout << std::endl;
+			while (true) 
+			{
+    		if (index >= directory_size) 
+    		{
+        		break;
+    		}
+
+    	
+    		if (i < buckets[index]->get_size())
+    		{
+        	if (bucket_encounter_first_time(index)) 
+        	{
+            	value_type element = buckets[index]->get_value(i);
+            	std::cout << element << " ";
+        	}
+        	i++;
+    		}
+    
+    		else 
+    		{
+        			i = 0;
+        			index++;
+    		}
+  		}
+
 	}
 		 
 		 
