@@ -425,8 +425,8 @@ class ADS_set
       			            value_type element = buckets[index]->get_value(i);
       			            if(uniqueElements.count(element) == 0) 
       			            {
-                                  std::cout << element << " ";
-                                  uniqueElements.insert(element); 
+                                    std::cout << element << " ";
+                                    uniqueElements.insert(element); 
       			            }
      			        }
     	        }
