@@ -278,7 +278,7 @@ class ADS_set
     }
      
     ~ADS_set() 
-   {
+    {
         
     	for (size_type i = directory_size; i > 0;) 
     	{
@@ -288,8 +288,8 @@ class ADS_set
               delete buckets[i];
            }
     	}
-    	 delete[] buckets;
-   }
+       delete[] buckets;
+    }
  
     size_type size() const
     {
@@ -418,17 +418,17 @@ class ADS_set
 	{
 		  ADS_set<value_type,N> uniqueElements; 
 		  std::cout << "\n";
-    	    for(size_t index{0}; index < directory_size; index++) 
+            for(size_t index{0}; index < directory_size; index++) 
     	    { 
-    			for(size_t i{0}; i < buckets[index]->get_size(); i++) 
-     			{
-      			   value_type element = buckets[index]->get_value(i);
-      			   if(uniqueElements.count(element) == 0) 
-      			   {
-       			     std::cout << element << " ";
-       				 uniqueElements.insert(element);
-      			   }
-     			}
+    			    for(size_t i{0}; i < buckets[index]->get_size(); i++) 
+     			    {
+      			        value_type element = buckets[index]->get_value(i);
+      			        if(uniqueElements.count(element) == 0) 
+      			        {
+                            std::cout << element << " ";
+                            uniqueElements.insert(element); 
+      			        }
+     			    }
     	    }
 	}
 		
@@ -456,8 +456,8 @@ class ADS_set
 		 
 	void test125()
 	{ 
-            size_type  index = 0;
-            size_type  i = 0;
+                size_type  index = 0;
+                size_type  i = 0;
 			
 			 while (true) 
 			{
