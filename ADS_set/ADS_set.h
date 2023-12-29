@@ -414,40 +414,40 @@ class ADS_set
     
     void test123()
     {
-      ADS_set<value_type,N> uniqueElements; 
-      std::cout << "\n";
-      for(size_t index{0}; index < directory_size; index++) 
-      { 
-          for(size_t i{0}; i < buckets[index]->get_size(); i++) 
-          {
-      			 value_type element = buckets[index]->get_value(i);
-      			 if(uniqueElements.count(element) == 0) 
-      			 {
-                        std::cout << element << " ";
-                        uniqueElements.insert(element); 
-      			 }
-     		  }
-      }
+       ADS_set<value_type,N> uniqueElements; 
+       std::cout << "\n";
+       for(size_t index{0}; index < directory_size; index++) 
+       { 
+           for(size_t i{0}; i < buckets[index]->get_size(); i++) 
+           {
+                value_type element = buckets[index]->get_value(i);
+              if(uniqueElements.count(element) == 0) 
+              {
+                std::cout << element << " ";
+                uniqueElements.insert(element); 
+              }
+           }
+       }
      }
 
 
      void test124()
      { 
-      ADS_set<Bucket*,N> uniqueBuckets;
-      std::cout << "\n";
-      for (size_t index{0}; index < directory_size; index++) 
-      {
-		  	     if (uniqueBuckets.count(buckets[index]) == 0) 
-		  	    {	
-					     uniqueBuckets.insert(buckets[index]);
-					  for (size_t i{0}; i < buckets[index]->get_size(); i++) 
-					  {
-              value_type element = buckets[index]->get_value(i);
-              std::cout << element << " ";
-					  }
-		  	  }
-      }
-		 		std::cout << std::endl;
+       ADS_set<Bucket*,N> uniqueBuckets;
+       std::cout << "\n";
+       for (size_t index{0}; index < directory_size; index++) 
+       {
+              if (uniqueBuckets.count(buckets[index]) == 0) 
+		  	      {	
+                uniqueBuckets.insert(buckets[index]);
+                for (size_t i{0}; i < buckets[index]->get_size(); i++) 
+                {
+                  value_type element = buckets[index]->get_value(i);
+                  std::cout << element << " ";
+                }
+              }
+       }
+       std::cout << std::endl;
      }
 		 
 		 
