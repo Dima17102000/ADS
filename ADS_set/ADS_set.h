@@ -282,11 +282,11 @@ class ADS_set
         
     	for (size_type i = directory_size; i > 0;) 
     	{
-        --i;
-        if (bucket_encounter_first_time(i)) 
-        {
-            delete buckets[i];
-        }
+            --i;
+            if (bucket_encounter_first_time(i))
+            {
+                delete buckets[i];
+            }
     	}
     	delete[] buckets;
    }
@@ -373,6 +373,7 @@ class ADS_set
     {
      size_type bucket_delay = depth - (buckets[index]->get_depth());
      size_type bucket_count = 1;
+    
      while(bucket_delay > 0)
      {
       bucket_count *= 2;
@@ -418,6 +419,7 @@ class ADS_set
 		{
 		  ADS_set<value_type,N> uniqueElements; 
 		  std::cout << "\n";
+        
     	for(size_t index{0}; index < directory_size; index++) 
     	{ 
     			for(size_t i{0}; i < buckets[index]->get_size(); i++) 
@@ -456,27 +458,27 @@ class ADS_set
 		 
 		 void test125()
 		 { 
-     		size_type index = 0;
+                size_type index = 0;
 		 		size_type i = 0;
 			
 				while (true) 
 				{
     				if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
     				{
-        			value_type element = buckets[index]->get_value(i);
-        			std::cout << element << " ";
-        			i++;
+                        value_type element = buckets[index]->get_value(i);
+                        std::cout << element << " ";
+                        i++;
     				} 
     			
     				else 
     				{
-        			index++;
-        			i = 0;
+                        index++;
+                        i = 0;
     				}
 
     				if (index >= directory_size) 
     				{
-        			break;
+                        break;
     				}
 				}
 				std::cout << std::endl;
@@ -485,7 +487,7 @@ class ADS_set
 		 
 		 bool bucket_encounter_first_time(size_type index)
 		 {
-		  return get_bucket_first_index(index) == index;
+             return get_bucket_first_index(index) == index;
 		 }
 		 
 		
