@@ -458,25 +458,23 @@ class ADS_set
        size_type index = 0;
        size_type i = 0;
 
-        while (true) 
+        while(true) 
        { 
-           if (index >= directory_size) 
+           if(index >= directory_size) 
            {
               break;
            }
 
     	
-           if (i < buckets[index]->get_size())
+           if(bucket_encounter_first_time(index) && i < buckets[index]->get_size())
            {
-              if (bucket_encounter_first_time(index)) 
-              {
                 value_type element = buckets[index]->get_value(i);
                 std::cout << element << " ";
-              }
-             i++;
            }
-    
-           else 
+           
+           i++;
+            
+           if(i >= buckets[index]->get_size()) 
            {
                i = 0;
                index++;
