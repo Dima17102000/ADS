@@ -278,18 +278,16 @@ class ADS_set
     }
      
     ~ADS_set() 
-   {
-        
-    	for (size_type i = directory_size; i > 0;) 
-    	{
-            --i;
-            if (bucket_encounter_first_time(i))
-            {
-                delete buckets[i];
-            }
-    	}
-    	delete[] buckets;
-   }
+    {
+       for (size_type i = directory_size; i > 0; --i) 
+       {
+          if (bucket_encounter_first_time(i - 1)) 
+          {
+            delete buckets[i - 1];
+          }
+       }
+      delete[] buckets;
+    }
  
     size_type size() const
     {
@@ -322,9 +320,9 @@ class ADS_set
         return buckets[index]->count(key);
     }
     
-    size_type get_depth()	const
+    size_type get_depth()const
     {
-     		return depth;
+     	 return depth;
     }
     
 
@@ -373,7 +371,6 @@ class ADS_set
     {
      size_type bucket_delay = depth - (buckets[index]->get_depth());
      size_type bucket_count = 1;
-    
      while(bucket_delay > 0)
      {
       bucket_count *= 2;
@@ -416,82 +413,84 @@ class ADS_set
     }
     
     void test123()
-		{
-		  ADS_set<value_type,N> uniqueElements; 
-		  std::cout << "\n";
-        
-    	for(size_t index{0}; index < directory_size; index++) 
-    	{ 
-    			for(size_t i{0}; i < buckets[index]->get_size(); i++) 
-     			{
-      				value_type element = buckets[index]->get_value(i);
-      				if(uniqueElements.count(element) == 0) 
-      				{
-       			   		std::cout << element << " ";
-       				 		uniqueElements.insert(element);
-      				}
-     			}
-    	 }
-		}
-		
-		void test124()
-		{
-				ADS_set<Bucket*,N> uniqueBuckets;
-				std::cout << "\n"; 
-				for (size_t index{0}; index < directory_size; index++) 
-				{
-		  			if (uniqueBuckets.count(buckets[index]) == 0) 
-		  			{	
-							uniqueBuckets.insert(buckets[index]);
-							for (size_t i{0}; i < buckets[index]->get_size(); i++) 
-							{
-		          		value_type element = buckets[index]->get_value(i);
-		         	 		std::cout << element << " ";
-							}
-		  			}
-		 		}
-		 		std::cout << std::endl;
-		 }
-		 
-		 
-		
-		 
-		 void test125()
-		{ 
-                size_type index = 0;
-                size_type i = 0;
-			
-			    while (true) 
-			    {
-    		        if (bucket_encounter_first_time(index) && i < buckets[index]->get_size()) 
-                    {
-                        value_type element = buckets[index]->get_value(i);
-                        std::cout << element << " ";
-                        i++;
-    			    } 
-    			
-    			    else 
-    			    {
-                        index++;
-                        i = 0;
-    			    }
+    {
+       ADS_set<value_type,N> uniqueElements; 
+       std::cout << "\n";
+       for(size_t index{0}; index < directory_size; index++) 
+       { 
+           for(size_t i{0}; i < buckets[index]->get_size(); i++) 
+           {
+              value_type element = buckets[index]->get_value(i);
+              if(uniqueElements.count(element) == 0) 
+              {
+                std::cout << element << " ";
+                uniqueElements.insert(element); 
+              }
+           }
+       }
+     }
 
-    			    if (index >= directory_size) 
-    			    {
-                        break;
-    			    }
-			    }
-			std::cout << std::endl;
-		}
+
+     void test124()
+     { 
+       ADS_set<Bucket*,N> uniqueBuckets;
+       std::cout << "\n";
+       for (size_t index{0}; index < directory_size; index++) 
+       {
+              if (uniqueBuckets.count(buckets[index]) == 0) 
+              {	
+                uniqueBuckets.insert(buckets[index]);
+                for (size_t i{0}; i < buckets[index]->get_size(); i++) 
+                {
+                  value_type element = buckets[index]->get_value(i);
+                  std::cout << element << " ";
+                }
+              }
+       }
+       std::cout << std::endl;
+     }
 		 
 		 
-		 bool bucket_encounter_first_time(size_type index)
-		 {
-             return get_bucket_first_index(index) == index;
-		 }
+		
+
+     void test125()
+     { 
+       size_type index = 0;
+       size_type i = 0;
+
+        while(true) 
+       { 
+           if(index >= directory_size) 
+           {
+              break;
+           }
+
+    	
+           if(bucket_encounter_first_time(index) && i < buckets[index]->get_size())
+           {
+                value_type element = buckets[index]->get_value(i);
+                std::cout << element << " ";
+           }
+           
+           i++;
+            
+           if(i >= buckets[index]->get_size()) 
+           {
+               i = 0;
+               index++;
+           }
+       }
+     }
+		 
+		 
+     bool bucket_encounter_first_time(size_type index)
+     {
+        return get_bucket_first_index(index) == index;
+     }
 		 
 		
 };
+
 
 
 /*
@@ -559,6 +558,5 @@ class ADS_set<Key,N>::Iterator
   	
 };
 */
-
 
 #endif

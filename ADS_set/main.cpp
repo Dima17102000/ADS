@@ -175,7 +175,7 @@ int teststresstest()
     using   my_type = int;
     std::vector<my_type>  vs(n);
     std::iota(vs.begin(),vs.end(),0);
-    std::random_shuffle(vs.begin(),vs.end());
+    //std::random_shuffle(vs.begin(),vs.end());
     
     vs  =   {4,51,11,15,24,35,17,36,26,50,33,39,19,2,47,56,59,18,32,40,5,21,57,12,14,42,27,6,45,58,30,38,13};
     //ADS_set<my_type,5>  s;
