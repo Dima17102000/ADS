@@ -369,7 +369,7 @@ class ADS_set
     
     size_type get_depth()const
     {
-     	return depth;
+     	  return depth;
     }
     
 
@@ -670,73 +670,71 @@ class ADS_set
      size_type elem_index;   
 	
      public:
-  	 using value_type = Key;
-  	 using difference_type = std::ptrdiff_t;
-  	 using reference = const value_type &;
-  	 using pointer = const value_type *;
-  	 using iterator_category = std::forward_iterator_tag;
-  	 //using size_type = size_t;
+     using value_type = Key;
+     using difference_type = std::ptrdiff_t;
+     using reference = const value_type &;
+     using pointer = const value_type *;
+     using iterator_category = std::forward_iterator_tag;
+     //using size_type = size_t;
   	
   	
-  	 Iterator(): s(nullptr), bucket_index(0), elem_index(0) {}
-  	 explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
-  	 reference operator*() const {return s->buckets[bucket_index]->get_value(elem_index);}  
-  	 pointer operator->() const {return &(s->buckets[bucket_index]->get_value(elem_index));}
-  	 /*
-  	 Iterator &operator++()
-  	 {
+     Iterator(): s(nullptr), bucket_index(0), elem_index(0) {}
+     explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
+     reference operator*() const {return s->buckets[bucket_index]->get_value(elem_index);}  
+     pointer operator->() const {return &(s->buckets[bucket_index]->get_value(elem_index));}
+     /*
+     Iterator &operator++()
+     {
   	
         while (dir_index < directory_size) 
         {
-          if (bucket_encounter_first_time(dir_index) && elem_index < buckets[dir_index]->get_size()) 
-          {
-            value_type element = buckets[dir_index]->get_value(elem_index);
-            std::cout << element << " ";
-            elem_index++;
-          } 
-        
-          else 
-          {
-            dir_index++;
-            elem_index = 0;
-          }
-        }
-       std::cout << std::endl;
-		  }
-  	   return *e;
-  	  */
-  	 
-  	 Iterator& operator++() 
-  	 {
-            // Move to the next element within the current bucket
-            ++elem_index;
-
-            // Check if we've reached the end of the current bucket's elements
-            while (bucket_index < s->directory_size) 
+            if (bucket_encounter_first_time(dir_index) && elem_index < buckets[dir_index]->get_size()) 
             {
-                if (elem_index >= s->buckets[bucket_index]->get_size()) 
-                {
-                    // Find the next bucket with elements, ensuring we don't revisit the same bucket
-                    do 
-                    {
-                        ++bucket_index;
-                    } while (bucket_index < s->directory_size && (s->buckets[bucket_index]->get_size() == 0 || !s->bucket_encounter_first_time(bucket_index)));
-
-                    // Reset element index for the new bucket
-                    elem_index = 0;
-                }
-
-                // If a valid bucket with elements is found, return
-                if (bucket_index < s->directory_size && s->bucket_encounter_first_time(bucket_index)) 
-                {
-                  return *this;
-                } 
-
-                break; // No more elements or buckets
+               value_type element = buckets[dir_index]->get_value(elem_index);
+               std::cout << element << " ";
+               elem_index++;
+            }  
+        
+            else 
+            {
+               dir_index++;
+               elem_index = 0;
             }
+        }
+        std::cout << std::endl;
+     }
+      return *e;
+    */
+  	 
+     Iterator& operator++() 
+     {
+        // Move to the next element within the current bucket
+        ++elem_index;
 
-        // End of the container
-        *this = s->end();
+       // Check if we've reached the end of the current bucket's elements
+       while (bucket_index < s->directory_size) 
+       {
+          if (elem_index >= s->buckets[bucket_index]->get_size()) 
+          {  // Find the next bucket with elements, ensuring we don't revisit the same bucket
+             do 
+             {
+               ++bucket_index;
+             }while (bucket_index < s->directory_size && (s->buckets[bucket_index]->get_size() == 0 || !s->bucket_encounter_first_time(bucket_index)));
+             // Reset element index for the new bucket
+             elem_index = 0;
+          }
+
+          // If a valid bucket with elements is found, return
+          if (bucket_index < s->directory_size && s->bucket_encounter_first_time(bucket_index)) 
+          {
+             return *this;
+          } 
+
+           break; // No more elements or buckets
+       }
+
+       // End of the container
+       *this = s->end();
         return *this;
      }
     
@@ -759,7 +757,7 @@ class ADS_set
   	
 
   	
-};
+   };
 
 
 #endif
