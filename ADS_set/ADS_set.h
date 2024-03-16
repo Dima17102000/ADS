@@ -10,14 +10,16 @@ template <typename Key, size_t N = 3>
 class ADS_set
 {
     public:
-    //class Iterator;
+    class Iterator;
+    Iterator begin()const;
+    Iterator end()const;
     using value_type = Key;
     using key_type = Key;
     using reference = value_type&;
     using const_reference = const value_type&;
     using size_type = size_t;
     using difference_type = std::ptrdiff_t;
-    //using const_iterator = Iterator;
+    using iterator = Iterator;
     //using iterator = const_iterator;
     using key_equal = std::equal_to<key_type>;                       // Hashing
     using hasher = std::hash<key_type>;                              // Hashing
@@ -82,13 +84,18 @@ class ADS_set
          return size;
         }
         
-        key_type get_value(size_type index) const
+        key_type get_value(size_type index) const 
         {
-            if(index  < size){
-                return values[index];
-            } else {
-                return key_type();
-            }
+          if(index < size)
+          {
+            return values[index];
+          } 
+        
+          else 
+          {
+            return key_type();
+          }
+        
         }
 
         bool full() const {
@@ -129,7 +136,8 @@ class ADS_set
             }
             return 0;
         }
-
+        
+        /*
         void insert (key_type key)
         {
             if(count(key)) return;
@@ -138,9 +146,22 @@ class ADS_set
                 values[size++] = key;
             }
         }
-    
-        void erase(key_type key)
-        {
+       */
+       
+       bool insert(key_type key) 
+       {
+         if(count(key)) return false; // Key already exists
+
+         if(size < max_size) 
+         {
+           values[size++] = key; // Insert the key
+           return true; // Indicate success
+         }
+          return false; // Indicate failure (bucket is full)
+       }
+       
+       void erase(key_type key)
+       {
             for(size_type  i{0}; i < size; i++)
             {
                 if (key_equal{}(values[i], key))
@@ -153,7 +174,7 @@ class ADS_set
                     return;
                 }
             }
-        }
+       }
     };
     private:
     Bucket** buckets;
@@ -223,7 +244,7 @@ class ADS_set
         total_elements -= N;
 
         for (size_type i = 0; i < N; ++i) {
-            this->insert(temp[i]);
+            this->insert1(temp[i]);
         }
         delete[] temp;
      }
@@ -256,8 +277,32 @@ class ADS_set
             insert(key);
         }
     }
+    
+    
+    
+    ADS_set& operator=(const ADS_set& other) 
+    {
+      if (this == &other) return *this; // Self-assignment guard
 
+      // First, clear current contents
+      // Your cleanup code here
 
+      // Then, copy from 'other'
+      // Deep copy of members from 'other' to 'this'
+      depth = other.depth;
+      directory_size = other.directory_size;
+      total_elements = other.total_elements;
+
+      // Deep copy the buckets
+      buckets = new Bucket*[directory_size];
+      for (size_t i = 0; i < directory_size; ++i) 
+      {
+        buckets[i] = new Bucket(*other.buckets[i]); // Assuming Bucket has a copy constructor
+      }
+
+      return *this;
+    }
+    
     template<typename InputIt>
     ADS_set(InputIt first,InputIt last):ADS_set(4)//ADS_set(2 * std::distance(first, last) / N)
     {
@@ -326,8 +371,9 @@ class ADS_set
     }
     
 
-    void insert(key_type key)
+    void insert1(key_type key)
     {
+        /*
         size_type index = hasher{}(key) % directory_size;
         if (buckets[index]->count(key))
         {
@@ -337,22 +383,79 @@ class ADS_set
         if (buckets[index]->full())
         {
             splitBucket(index);
-            return insert(key);
+            return insert1(key);
         }
         buckets[index]->insert(key);
         total_elements++;
-    }
+        */
+        
+        size_type index = hasher{}(key) % directory_size;
 
+        // No need to check for existence here, as Bucket::insert already does that.
+
+        if (buckets[index]->full()) 
+        {
+          splitBucket(index);
+          // After splitting, the key could potentially fit into the current or new bucket,
+          // so we try inserting again. Note: splitBucket might change the structure, 
+          // requiring a rehash or a different bucket might be selected.
+          insert1(key); // Recursive call to try inserting again
+        } 
+        
+        else 
+        {
+          // Attempt to insert the key into the bucket
+          if (buckets[index]->insert(key)) 
+          {
+            total_elements++; // Increment only if insertion was successful
+          }
+        }
+    }
+    
+    
+    std::pair<iterator, bool> insert(const key_type& key) 
+    {
+      size_type index = hasher{}(key) % directory_size;
+      bool inserted = false;
+
+      if (!buckets[index]->count(key)) 
+      {
+        if (buckets[index]->full()) 
+        {
+            splitBucket(index);
+            index = hasher{}(key) % directory_size; // Recalculate index as the directory might have changed
+        }
+         inserted = buckets[index]->insert(key);
+         if (inserted) total_elements++;
+      }
+
+     // Iterate through the bucket to find the position of the key
+     // This is necessary whether we just inserted the key or it already existed
+     for (size_type pos = 0; pos < buckets[index]->get_size(); ++pos) 
+     {
+        if (key_equal{}(buckets[index]->get_value(pos), key)) 
+        {
+            // Found the key, return iterator and insertion result
+            return {iterator(this, index, pos), inserted};
+        }
+     }
+
+     // If for some reason the key is not found, return end iterator and false
+     // This situation should not happen if the code is correct
+     return {end(), false}; 
+    
+    }
+    
     void insert(std::initializer_list<key_type> ilist)
     {
         for (const key_type& key : ilist)
         {
-            insert(key);
+            insert1(key);
         }
     
     }
     
-    size_type get_bucket_first_index(size_type index)
+    size_type get_bucket_first_index(size_type index)const
     {
      size_type bucket_delay = depth - (buckets[index]->get_depth());
      size_type bucket_count = 1;
@@ -386,17 +489,21 @@ class ADS_set
     {
         for (InputIt it = first; it != last; ++it)
         {
-            insert(*it);
+            insert1(*it);
         }
     }
     
-    void erase(key_type key)
+    size_type erase(key_type key)
     {
         size_type  index =  hasher{}(key) % directory_size;
         if (!buckets[index]->count(key))
-            return;
+        {
+            return 0;
+        }
         buckets[index]->erase(key);
         total_elements--;
+        
+        return 1;
     }
     
     void clear()
@@ -424,7 +531,7 @@ class ADS_set
               if(uniqueElements.count(element) == 0) 
               {
                 std::cout << element << " ";
-                uniqueElements.insert(element); 
+                uniqueElements.insert1(element); 
               }
            }
        }
@@ -439,7 +546,7 @@ class ADS_set
        {
               if (uniqueBuckets.count(buckets[index]) == 0) 
               {	
-                uniqueBuckets.insert(buckets[index]);
+                uniqueBuckets.insert1(buckets[index]);
                 for (size_t i{0}; i < buckets[index]->get_size(); i++) 
                 {
                   value_type element = buckets[index]->get_value(i);
@@ -483,54 +590,97 @@ class ADS_set
      }
 		 
 		 
-     bool bucket_encounter_first_time(size_type index)
+     bool bucket_encounter_first_time(size_type index)const
      {
         return get_bucket_first_index(index) == index;
      }
 		 
+		 
+		 iterator find(const key_type& key) const 
+		 {
+       size_type index = hasher{}(key) % directory_size; // Calculate bucket index
+       if (buckets[index]->count(key) > 0) 
+       {
+        // Key exists in the bucket, find its position
+        for (size_type pos = 0; pos < buckets[index]->get_size(); ++pos) 
+        {
+            if (key_equal{}(buckets[index]->get_value(pos), key)) 
+            {
+                // Found the key, return an iterator to it
+                return iterator(const_cast<ADS_set<Key, N>*>(this), index, pos);
+            }
+        }
+       }
+       // Key not found, return end iterator
+       return end();
+     }
 		
 };
 
 
-
-/*
-Iterator begin()
+template<typename Key, size_t N>
+bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
 {
-  for(size_type i{0}; i  < directory_size(); i++)
-  if(bucket[i]->get_size() == 0)
-  {
-    return this->end();
-  }
-  
- return iterator(e,this);
+    if (lhs.size() != rhs.size()) return false; // Sets of different sizes are not equal
+
+    for (auto it = lhs.begin(); it != lhs.end(); ++it) {
+        // Use the count method of rhs to check if each element in lhs is present in rhs
+        if (rhs.count(*it) == 0) return false;
+    }
+    return true;
 }
 
-Iterator end()
+
+template<typename Key, size_t N>
+bool operator!=(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
 {
- return Iterator{e+size,this};
+    return !(lhs == rhs); // Use the already defined == operator for comparison
 }
+
+
+
+
+template <typename Key, size_t N>
+ typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::begin()const 
+ {
+    for (size_t i = 0; i < directory_size; ++i) {
+        if (buckets[i]->get_size() > 0) {
+            return iterator(this, i, 0); 
+        }
+    }
+    return this->end(); // All buckets are empty
+}
+
+template <typename Key, size_t N>
+ typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::end()const
+ {
+   return iterator(this, directory_size, 0);
+ }
 
 
 template <typename Key, size_t N>
 class ADS_set<Key,N>::Iterator 
 {
-   value_type** e;
-   size_type elem_index;
-   size_type dir_index;
-   size_type directory_size;   
+   const ADS_set* s;
+   size_type bucket_index;
+   size_type elem_index;   
 	public:
   	using value_type = Key;
   	using difference_type = std::ptrdiff_t;
   	using reference = const value_type &;
   	using pointer = const value_type *;
   	using iterator_category = std::forward_iterator_tag;
-  	using size_type = size_t;
-
-  	explicit Iterator(value_type *e, value_type elem_index, value_type dir_index, size_type directory_size): e{e},elem_index{elem_index},dir_index{dir_index},directory_size{directory_size}{}
-  	reference operator*() const {return *e;}
-  	pointer 	operator->() const {return e;}
+  	//using size_type = size_t;
+  	
+  	
+  	Iterator(): s(nullptr), bucket_index(0), elem_index(0) {}
+  	explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
+  	reference operator*() const {return s->buckets[bucket_index]->get_value(elem_index);}  
+  	pointer operator->() const {return &(s->buckets[bucket_index]->get_value(elem_index));}
+  	/*
   	Iterator &operator++()
   	{
+  	
      while (dir_index < directory_size) 
      {
         if (bucket_encounter_first_time(dir_index) && elem_index < buckets[dir_index]->get_size()) 
@@ -549,14 +699,58 @@ class ADS_set<Key,N>::Iterator
      std::cout << std::endl;
 		}
   	 return *e;
-  	 }
-  	Iterator operator++(int) {}
-  	friend bool operator==(const Iterator &lhs, const Iterator &rhs) {}
-  	friend bool operator!=(const Iterator &lhs, const Iterator &rhs) {}
+  	 */
+  	 
+  	 Iterator& operator++() 
+  	 {
+       // Move to the next element within the current bucket
+       ++elem_index;
+
+      // Check if we've reached the end of the current bucket's elements
+       while (bucket_index < s->directory_size) 
+       {
+         if (elem_index >= s->buckets[bucket_index]->get_size()) 
+         {
+             // Find the next bucket with elements, ensuring we don't revisit the same bucket
+             do {
+                ++bucket_index;
+             } while (bucket_index < s->directory_size && (s->buckets[bucket_index]->get_size() == 0 || !s->bucket_encounter_first_time(bucket_index)));
+
+            // Reset element index for the new bucket
+            elem_index = 0;
+         }
+
+         // If a valid bucket with elements is found, return
+         if (bucket_index < s->directory_size && s->bucket_encounter_first_time(bucket_index)) {
+            return *this;
+         }
+
+         break; // No more elements or buckets
+       }
+
+       // End of the container
+      *this = s->end();
+      return *this;
+     }
+    
+  	Iterator operator++(int) 
+  	{
+  	  Iterator temp = *this;
+      ++(*this);
+      return temp;
+  	}
+  	friend bool operator==(const Iterator &lhs, const Iterator &rhs) 
+  	{
+  	 return lhs.s == rhs.s && lhs.bucket_index == rhs.bucket_index && lhs.elem_index == rhs.elem_index;
+  	}
+  	friend bool operator!=(const Iterator &lhs, const Iterator &rhs) 
+  	{
+  	  return !(lhs == rhs);
+  	}
   	
-}
+
   	
 };
-*/
+
 
 #endif

@@ -1,4 +1,4 @@
-#include "ADS_set.h"
+#include "ADS_set1.h"
 #include <iostream>
 #include <vector>
 #include <numeric>
@@ -197,6 +197,15 @@ int teststresstest()
 }
 
 
+void test_iterator(){
+  ADS_set<int, 3> s = {1, 2, 3, 4, 5, 6, 7};
+  // s.dump();
+  for (auto it = s.begin(); it != s.end(); it++){
+    std::cout << *it << " ";
+  }
+  std::cout << std::endl;
+}
+
 
 
 /*
@@ -230,7 +239,8 @@ int main() {
     // for (int i = 0; i < 5; i++){
     //     array[i];
     // }
-    teststresstest();
+    //teststresstest();
     //dumptest();
+    test_iterator();
     return 0;
 }
