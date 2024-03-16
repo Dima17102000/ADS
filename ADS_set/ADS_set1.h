@@ -82,7 +82,7 @@ class ADS_set
         
         size_type get_size()const
         {
-         return size;
+            return size;
         }
         
         key_type get_value(size_type index) const 
@@ -152,14 +152,14 @@ class ADS_set
        
         bool insert(key_type key) 
         {
-          if(count(key)) return false; // Key already exists
+            if(count(key)) return false; // Key already exists
 
-           if(size < max_size) 
-           {
-             values[size++] = key; // Insert the key
-             return true; // Indicate success
-           }
-           return false; // Indicate failure (bucket is full)
+            if(size < max_size) 
+            {
+                values[size++] = key; // Insert the key
+                return true; // Indicate success
+            }
+            return false; // Indicate failure (bucket is full)
         }
        
         void erase(key_type key)
@@ -189,8 +189,8 @@ class ADS_set
         buckets[index]->insert(key);
     }
 
-     void expandDirectory()
-     {
+    void expandDirectory()
+    {
         size_type new_directory_size = directory_size * 2;
         Bucket** new_buckets = new Bucket*[new_directory_size];
         for(size_type i{0}; i < directory_size; i++)
@@ -203,10 +203,10 @@ class ADS_set
         directory_size = new_directory_size;
         
         depth++;
-     }
+    }
      
-     void splitBucket(size_type index)
-     {
+    void splitBucket(size_type index)
+    {
         get_bucket_first_index(index);
         size_type first_meet_index = get_bucket_first_index(index);
         size_type distance = get_bucket_distance(index);
@@ -249,7 +249,7 @@ class ADS_set
             this->insert1(temp[i]);
         }
         delete[] temp;
-     }
+    }
    
     public:
     ADS_set() : ADS_set(4)
@@ -369,7 +369,7 @@ class ADS_set
     
     size_type get_depth()const
     {
-     	 return depth;
+     	return depth;
     }
     
 
@@ -444,7 +444,7 @@ class ADS_set
 
      // If for some reason the key is not found, return end iterator and false
      // This situation should not happen if the code is correct
-     return {end(), false}; 
+        return {end(), false}; 
     
     }
     
@@ -568,10 +568,10 @@ class ADS_set
        size_type i = 0;
 
         while(true) 
-       { 
+        { 
            if(index >= directory_size) 
            {
-              break;
+                break;
            }
 
     	
@@ -585,10 +585,10 @@ class ADS_set
             
            if(i >= buckets[index]->get_size()) 
            {
-               i = 0;
-               index++;
+                i = 0;
+                index++;
            }
-       }
+        }
     }
 		 
 		 
@@ -614,7 +614,7 @@ class ADS_set
         }
        }
        // Key not found, return end iterator
-       return end();
+        return end();
     }
 		
 };
@@ -630,14 +630,14 @@ class ADS_set
         // Use the count method of rhs to check if each element in lhs is present in rhs
         if (rhs.count(*it) == 0) return false;
       }
-      return true;
+        return true;
     }
 
 
     template<typename Key, size_t N>
     bool operator!=(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
     {
-      return !(lhs == rhs); // Use the already defined == operator for comparison
+        return !(lhs == rhs); // Use the already defined == operator for comparison
     }
 
 
@@ -653,13 +653,13 @@ class ADS_set
               return iterator(this, i, 0); 
             }
          } 
-       return this->end(); // All buckets are empty
+        return this->end(); // All buckets are empty
     }
 
     template <typename Key, size_t N>
     typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::end()const
     {
-      return iterator(this, directory_size, 0);
+        return iterator(this, directory_size, 0);
     }
 
 
