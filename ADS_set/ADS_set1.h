@@ -375,41 +375,20 @@ class ADS_set
 
     void insert1(key_type key)
     {
-        /*
-        size_type index = hasher{}(key) % directory_size;
-        if (buckets[index]->count(key))
-        {
-            return;
-        }
-
-        if (buckets[index]->full())
-        {
-            splitBucket(index);
-            return insert1(key);
-        }
-        buckets[index]->insert(key);
-        total_elements++;
-        */
         
         size_type index = hasher{}(key) % directory_size;
-
-        // No need to check for existence here, as Bucket::insert already does that.
 
         if (buckets[index]->full()) 
         {
           splitBucket(index);
-          // After splitting, the key could potentially fit into the current or new bucket,
-          // so we try inserting again. Note: splitBucket might change the structure, 
-          // requiring a rehash or a different bucket might be selected.
-          insert1(key); // Recursive call to try inserting again
+          insert1(key); 
         } 
         
         else 
         {
-            // Attempt to insert the key into the bucket
             if (buckets[index]->insert(key)) 
             {
-                total_elements++; // Increment only if insertion was successful
+                total_elements++;
             }
         }
     }
@@ -681,28 +660,7 @@ class ADS_set<Key,N>::Iterator
    explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
    reference operator*() const {return s->buckets[bucket_index]->get_value(elem_index);}  
    pointer operator->() const {return &(s->buckets[bucket_index]->get_value(elem_index));}
-   /*
-   Iterator &operator++()
-   {
-    while (dir_index < directory_size) 
-    {
-      if(bucket_encounter_first_time(dir_index) && elem_index < buckets[dir_index]->get_size()) 
-      {
-        value_type element = buckets[dir_index]->get_value(elem_index);
-        std::cout << element << " ";
-        elem_index++;
-      }  
-        
-      else 
-      {
-        dir_index++;
-        elem_index = 0;
-      }
-    }
-    std::cout << std::endl;
-   }
-   return *e;
-   */
+   
   	 
    Iterator& operator++() 
    {
