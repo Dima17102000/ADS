@@ -39,7 +39,6 @@ class ADS_set
         {
         }
     
-        ~Bucket() {delete[] values;}
 
         Bucket(const Bucket& other): values(new key_type[other.max_size]),depth(other.depth),size(other.size),max_size(other.max_size)
         {
@@ -51,6 +50,8 @@ class ADS_set
             }
         
         }
+        
+        ~Bucket() {delete[] values;}
         
         Bucket& operator=(const Bucket& other){
             if (this != &other) // Check for self-assignment
@@ -72,20 +73,13 @@ class ADS_set
             depth++;
         }
 
-        size_type get_capacity() {
-            return max_size;
-        }
+        size_type get_capacity()   {  return max_size; }
 
-        size_type get_depth() const {
-            return depth;
-        }
+        size_type get_depth()const {  return depth;    }
         
-        size_type get_size()const
-        {
-            return size;
-        }
+        size_type get_size()const  {  return size;     }
         
-        key_type get_value(size_type index) const 
+        key_type& get_value(size_type index) const 
         {
           if(index < size)
           {
@@ -94,7 +88,7 @@ class ADS_set
         
           else 
           {
-            return key_type();
+            throw  std::out_of_range("index out of range.");
           }
         
         }
@@ -139,16 +133,6 @@ class ADS_set
             return 0;
         }
         
-        /*
-        void insert (key_type key)
-        {
-            if(count(key)) return;
-    
-            if(size < max_size) {
-                values[size++] = key;
-            }
-        }
-       */
        
         bool insert(key_type key) 
         {
@@ -218,19 +202,7 @@ class ADS_set
             expandDirectory();
         }
         
-        //size_type bucket_count = pow(2,(depth - (buckets[index]->get_depth()-1)));
-        /*
-        size_type bucket_count = 1;
-    		size_type bucket_depth = depth - (buckets[index]->get_depth() - 1);
-    		while (bucket_depth > 0) 
-    		{	
-        		bucket_count *= 2;
-        		--bucket_depth;
-    		}
-    		
-        // finding of positions for newBucket and rewriting them
-        size_type distance = directory_size / bucket_count; 
-       */
+        
         for(size_type i = first_meet_index; i < directory_size;i+=2*distance)
         {   // it gives us the first time meeting index in our directory.
         		buckets[i] = newBucket;
@@ -252,12 +224,8 @@ class ADS_set
     }
    
     public:
-    ADS_set() : ADS_set(4)
-    {
-
-    }
+    ADS_set() : ADS_set(4){}
     
-  
     ADS_set(size_type directory_size1): depth(0), directory_size(directory_size1), total_elements(0)
     {
         if(directory_size  < 1)
@@ -280,7 +248,24 @@ class ADS_set
         }
     }
     
-    
+    template<typename InputIt>
+    ADS_set(InputIt first,InputIt last):ADS_set(4)//ADS_set(2 * std::distance(first, last) / N)
+    {
+        for (InputIt it = first; it != last; ++it) {
+            insert(*it);
+        }
+    }
+
+    ADS_set(const ADS_set& other) : ADS_set(other.directory_size) //doesn't work correctly
+    {
+        depth = other.depth;
+        directory_size = other.directory_size;
+        total_elements = other.total_elements;
+        
+        for (size_type i = 0; i < directory_size; ++i) {
+            *buckets[i] = *other.buckets[i];
+        }
+    }
     
     ADS_set& operator=(const ADS_set& other) 
     {
@@ -304,25 +289,6 @@ class ADS_set
 
         return *this;
     }
-    
-    template<typename InputIt>
-    ADS_set(InputIt first,InputIt last):ADS_set(4)//ADS_set(2 * std::distance(first, last) / N)
-    {
-        for (InputIt it = first; it != last; ++it) {
-            insert(*it);
-        }
-    }
-
-    ADS_set(const ADS_set& other) : ADS_set(other.directory_size) //doesn't work correctly
-    {
-        depth = other.depth;
-        directory_size = other.directory_size;
-        total_elements = other.total_elements;
-        
-        for (size_type i = 0; i < directory_size; ++i) {
-            *buckets[i] = *other.buckets[i];
-        }
-    }
      
     ~ADS_set() 
     {
@@ -334,11 +300,6 @@ class ADS_set
           }
        }
       delete[] buckets;
-    }
- 
-    size_type size() const
-    {
-        return total_elements;
     }
 
     void dump(std::ostream& o =std::cerr) const
@@ -360,18 +321,48 @@ class ADS_set
             o << "-";
         }
     }
+    
+    size_type size() const{   
+        return total_elements;
+    }
 
-    size_type count(const key_type &key) const
-    {
+    size_type count(const key_type &key) const{
         size_type index = hasher{}(key) % directory_size;
         return buckets[index]->count(key);
     }
     
-    size_type get_depth()const
-    {
+    size_type get_depth()const{
      	  return depth;
     }
     
+    
+    size_type get_bucket_first_index(size_type index)const
+    {
+        size_type bucket_delay = depth - (buckets[index]->get_depth());
+        size_type bucket_count = 1;
+        while(bucket_delay > 0)
+        {
+            bucket_count *= 2;
+            --bucket_delay;
+        }
+        size_type distance = directory_size/bucket_count;
+        size_type first_meet_index = index % distance;
+     
+        return first_meet_index;
+    }
+    
+    size_type get_bucket_distance(size_type index)
+    {
+        size_type bucket_delay = depth - (buckets[index]->get_depth());
+        size_type bucket_count = 1;
+        while(bucket_delay > 0)
+        {
+            bucket_count *= 2;
+            --bucket_delay;
+        }
+        size_type distance = directory_size/bucket_count;
+        return distance;
+    }
 
     void insert1(key_type key)
     {
@@ -436,34 +427,6 @@ class ADS_set
     
     }
     
-    size_type get_bucket_first_index(size_type index)const
-    {
-        size_type bucket_delay = depth - (buckets[index]->get_depth());
-        size_type bucket_count = 1;
-        while(bucket_delay > 0)
-        {
-            bucket_count *= 2;
-            --bucket_delay;
-        }
-        size_type distance = directory_size/bucket_count;
-        size_type first_meet_index = index % distance;
-     
-        return first_meet_index;
-    }
-    
-    size_type get_bucket_distance(size_type index)
-    {
-        size_type bucket_delay = depth - (buckets[index]->get_depth());
-        size_type bucket_count = 1;
-        while(bucket_delay > 0)
-        {
-            bucket_count *= 2;
-            --bucket_delay;
-        }
-        size_type distance = directory_size/bucket_count;
-        return distance;
-    }
-    
     
     template<typename InputIt>
     void insert(InputIt first, InputIt last)
@@ -500,77 +463,7 @@ class ADS_set
         return total_elements == 0;
     }
     
-    void test123()
-    {
-       ADS_set<value_type,N> uniqueElements; 
-       std::cout << "\n";
-       for(size_t index{0}; index < directory_size; index++) 
-       { 
-           for(size_t i{0}; i < buckets[index]->get_size(); i++) 
-           {
-              value_type element = buckets[index]->get_value(i);
-              if(uniqueElements.count(element) == 0) 
-              {
-                std::cout << element << " ";
-                uniqueElements.insert1(element); 
-              }
-           }
-       }
-    }
-
-
-    void test124()
-    { 
-       ADS_set<Bucket*,N> uniqueBuckets;
-       std::cout << "\n";
-       for (size_t index{0}; index < directory_size; index++) 
-       {
-              if (uniqueBuckets.count(buckets[index]) == 0) 
-              {	
-                uniqueBuckets.insert1(buckets[index]);
-                for (size_t i{0}; i < buckets[index]->get_size(); i++) 
-                {
-                  value_type element = buckets[index]->get_value(i);
-                  std::cout << element << " ";
-                }
-              }
-       }
-       std::cout << std::endl;
-    }
-		 
-		 
-		
-
-    void test125()
-    { 
-       size_type index = 0;
-       size_type i = 0;
-
-        while(true) 
-        { 
-           if(index >= directory_size) 
-           {
-                break;
-           }
-
-    	
-           if(bucket_encounter_first_time(index) && i < buckets[index]->get_size())
-           {
-                value_type element = buckets[index]->get_value(i);
-                std::cout << element << " ";
-           }
-           
-           i++;
-            
-           if(i >= buckets[index]->get_size()) 
-           {
-                i = 0;
-                index++;
-           }
-        }
-    }
-		 
-		 
+   
     bool bucket_encounter_first_time(size_type index)const
     {
         return get_bucket_first_index(index) == index;
@@ -664,51 +557,51 @@ class ADS_set<Key,N>::Iterator
   	 
    Iterator& operator++() 
    {
-     // Move to the next element within the current bucket
-     ++elem_index;
+      // Move to the next element within the current bucket
+      ++elem_index;
 
-     // Check if we've reached the end of the current bucket's elements
-    while (bucket_index < s->directory_size) 
-    {
-      if (elem_index >= s->buckets[bucket_index]->get_size()) 
-      {  // Find the next bucket with elements, ensuring we don't revisit the same bucket
-         do 
-         {
-           ++bucket_index;
-         }while (bucket_index < s->directory_size && (s->buckets[bucket_index]->get_size() == 0 || !s->bucket_encounter_first_time(bucket_index)));
-        // Reset element index for the new bucket
-        elem_index = 0;
-      }
-
-       // If a valid bucket with elements is found, return
-      if (bucket_index < s->directory_size && s->bucket_encounter_first_time(bucket_index)) 
+    // Check if we've reached the end of the current bucket's elements
+      while (bucket_index < s->directory_size) 
       {
-         return *this;
-      } 
+         if (elem_index >= s->buckets[bucket_index]->get_size()) 
+         {  // Find the next bucket with elements, ensuring we don't revisit the same bucket
+            do 
+            {
+              ++bucket_index;
+            }while (bucket_index < s->directory_size && (s->buckets[bucket_index]->get_size() == 0 || !s->bucket_encounter_first_time(bucket_index)));
+        // Reset element index for the new bucket
+          elem_index = 0;
+         }
 
-      break; // No more elements or buckets
-    }
+        // If a valid bucket with elements is found, return
+         if (bucket_index < s->directory_size && s->bucket_encounter_first_time(bucket_index)) 
+         {
+           return *this;
+         }  
 
-     // End of the container
-     *this = s->end();
-     return *this;
+         break; // No more elements or buckets
+       }
+
+       // End of the container
+       *this = s->end();
+       return *this;
    }
     
    Iterator operator++(int) 
    {
-     Iterator temp = *this;
-     ++(*this);
-     return temp;
+       Iterator temp = *this;
+       ++(*this);
+       return temp;
    }
   	  
    friend bool operator==(const Iterator &lhs, const Iterator &rhs) 
    {
-     return lhs.s == rhs.s && lhs.bucket_index == rhs.bucket_index && lhs.elem_index == rhs.elem_index;
+       return lhs.s == rhs.s && lhs.bucket_index == rhs.bucket_index && lhs.elem_index == rhs.elem_index;
    }
   	  
    friend bool operator!=(const Iterator &lhs, const Iterator &rhs)  
    {
-     return !(lhs == rhs);
+       return !(lhs == rhs);
    }
   	
 
