@@ -258,41 +258,52 @@ class ADS_set
 
     ADS_set(const ADS_set& other) : ADS_set(other.directory_size) //doesn't work correctly
     {
+        
         depth = other.depth;
         directory_size = other.directory_size;
         total_elements = other.total_elements;
         
-        for (size_type i = 0; i < directory_size; ++i) {
-            *buckets[i] = *other.buckets[i];
-            if(!other.bucket_encounter_first_time(i))
-            delete this->buckets[i];
-            this->buckets[i] = other.buckets[other.get_bucket_first_index(i)];
+        for(auto it = other.begin(); it != other.end(); ++it)
+        {
+          insert(*it);
         }
+        /*
+        for (size_type i = 0; i < directory_size; ++i) {
+           *buckets[i] = *other.buckets[i];
+           if (!other.bucket_encounter_first_time(i)) 
+           { 
+             delete this->buckets[i];
+             this->buckets[i] = other.buckets[other.get_bucket_first_index(i)]; 
+           } 
+        }
+        */
     }
     
     ADS_set& operator=(const ADS_set& other) 
     {
-        if (this == &other) return *this; // Self-assignment guard
-
-        // First, clear current contents
-        // Your cleanup code here
-
-        // Then, copy from 'other'
-        // Deep copy of members from 'other' to 'this'
+        
+        if(this == &other) return *this;
+        
         depth = other.depth;
         directory_size = other.directory_size;
         total_elements = other.total_elements;
-
-        // Deep copy the buckets
+        /*
         buckets = new Bucket*[directory_size];
-        for (size_t i = 0; i < directory_size; ++i) 
+        
+        for(size_type i = 0; i < directory_size; ++i)
         {
-            if(other.bucket_encounter_first_time(i))
-            buckets[i] = new Bucket(*other.buckets[i]); // Assuming Bucket has a copy constructor
-            else
-            buckets[i] = buckets[other.get_bucket_first_index(i)];
+          if(other.bucket_encounter_first_time(i))
+             buckets[i] = new Bucket(*other.buckets[i]);
+          else
+             buckets[i] = buckets[other.get_bucket_first_index(i)];
         }
-
+        return *this;
+        */
+         this->clear();
+         for(auto it = other.begin(); it != other.end(); ++it)
+        {
+          insert(*it);
+        }
         return *this;
     }
      
@@ -394,6 +405,7 @@ class ADS_set
     std::pair<iterator, bool> insert(const key_type& key) 
     {
         size_type index = hasher{}(key) % directory_size;
+        index = get_bucket_first_index(index);
         bool inserted = false;
 
         if (!buckets[index]->count(key)) 
@@ -478,6 +490,7 @@ class ADS_set
     iterator find(const key_type& key)const 
     {
        size_type index = hasher{}(key) % directory_size; // Calculate bucket index
+       index = get_bucket_first_index(index);
        if (buckets[index]->count(key) > 0) 
        {
           // Key exists in the bucket, find its position
