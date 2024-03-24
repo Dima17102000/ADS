@@ -259,15 +259,16 @@ class ADS_set
     ADS_set(const ADS_set& other) : ADS_set(other.directory_size) //doesn't work correctly
     {
         
-        depth = other.depth;
-        directory_size = other.directory_size;
-        total_elements = other.total_elements;
+        
         
         for(auto it = other.begin(); it != other.end(); ++it)
         {
           insert(*it);
         }
         /*
+        depth = other.depth;
+        directory_size = other.directory_size;
+        total_elements = other.total_elements;
         for (size_type i = 0; i < directory_size; ++i) {
            *buckets[i] = *other.buckets[i];
            if (!other.bucket_encounter_first_time(i)) 
@@ -283,11 +284,10 @@ class ADS_set
     {
         
         if(this == &other) return *this;
-        
+        /*
         depth = other.depth;
         directory_size = other.directory_size;
-        total_elements = other.total_elements;
-        /*
+        
         buckets = new Bucket*[directory_size];
         
         for(size_type i = 0; i < directory_size; ++i)
@@ -305,6 +305,7 @@ class ADS_set
           insert(*it);
         }
         return *this;
+        
     }
      
     ~ADS_set() 
@@ -413,7 +414,7 @@ class ADS_set
             if (buckets[index]->full()) 
             {
                 splitBucket(index);
-                index = hasher{}(key) % directory_size; // Recalculate index as the directory might have changed
+                return  insert(key); // Recalculate index as the directory might have changed
             }
             inserted = buckets[index]->insert(key);
             if (inserted) total_elements++;
