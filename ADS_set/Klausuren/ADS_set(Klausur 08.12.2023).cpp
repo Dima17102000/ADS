@@ -569,7 +569,7 @@ class ADS_set<Key,N>::Iterator
          return *this;
       value_type value1 = first_element;
       value_type value2 = **this;
-      if(value2 < value1)
+      if(std::less<value_type>{}(value2, value1))
       {
         return ++(*this); 
       }
@@ -631,157 +631,165 @@ class ADS_set<Key,N>::Iterator
   	
 };
 
+ void test_1_funktion()
+ {
+   ADS_set <int,8> set = {1,2,4,3,5,6,7};
+   std::cout <<"Example 1: ";
+   for(auto it = set.begin(); it != set.end(); it++)
+   {
+     std::cout << *it << " "; 
+   }
+     std::cout << std::endl << std::endl;
+     //set.dump();
+     std::cout <<"Example 1_correct: ";
+   for(auto it = set.z(); it != set.end(); it++)
+   {
+     std::cout << *it << " "; 
+   }
+     std::cout << std::endl << std::endl;
+ }
+
+ void test_2_funktion()
+ {
+   ADS_set <int,8> set1 = {4,2,3,1,5,6};
+   std::cout <<"Example 2: ";
+   for(auto it = set1.begin(); it != set1.end(); it++)
+   {
+     std::cout << *it << " "; 
+   }
+     std::cout << std::endl << std::endl;
+     //set.dump();
+     std::cout <<"Example 2_correct: ";
+   for(auto it = set1.z(); it != set1.end(); it++)
+   {
+     std::cout << *it << " "; 
+   }
+     std::cout << std::endl << std::endl;
+ }
+ 
+  void test_3_funktion()
+  {
+     ADS_set <int,7> set2 = {4,2,6,5,1};
+     std::cout <<"Example 3: ";
+     for(auto it = set2.begin(); it != set2.end(); it++)
+     {
+       std::cout << *it << " "; 
+     }
+       std::cout << std::endl << std::endl;
+       //set1.dump();
+       std::cout <<"Example 3_correct: ";
+     for(auto it = set2.z(); it != set2.end(); it++)
+     {
+       std::cout << *it << " "; 
+     }
+       std::cout << std::endl << std::endl;
+   }
+   
+   void test_4_funktion()
+   {
+      ADS_set <int,7> set3 = {5,3,4,1,2};
+      std::cout <<"Example 4: ";
+      for(auto it = set3.begin(); it != set3.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+        //set1.dump();
+        std::cout <<"Example 4_correct: ";
+      for(auto it = set3.z(); it != set3.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+    }
+    
+   void test_5_funktion()
+   {
+      ADS_set <int,5> set4 = {7,8};
+      std::cout <<"Example 5: ";
+      for(auto it = set4.begin(); it != set4.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+        //set1.dump();
+        std::cout <<"Example 5_correct: ";
+      for(auto it = set4.z(); it != set4.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+    }
+    
+   void test_6_funktion()
+   {
+      ADS_set <int,8> set5 = {7,6};
+      std::cout <<"Example 6: ";
+      for(auto it = set5.begin(); it != set5.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+        //set1.dump();
+        std::cout <<"Example 6_correct: ";
+      for(auto it = set5.z(); it != set5.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+    }
+    
+    void test_7_funktion()
+   {
+      ADS_set <int,1> set5 = {7};
+      std::cout <<"Example 7: ";
+      for(auto it = set5.begin(); it != set5.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+        //set1.dump();
+        std::cout <<"Example 7_correct: ";
+      for(auto it = set5.z(); it != set5.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+    }
+    
+    
+    void test_8_funktion()
+   {
+      ADS_set <int,1> set5 = {};
+      std::cout <<"Example 8: ";
+      for(auto it = set5.begin(); it != set5.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+        //set1.dump();
+        std::cout <<"Example 8_correct: ";
+      for(auto it = set5.z(); it != set5.end(); it++)
+      {
+        std::cout << *it << " "; 
+      }
+        std::cout << std::endl << std::endl;
+    }
+
 int main()
 {
-  /*
-  ADS_set <int,3> set = {10,12,15,16,17};
-  set.dump();
-  for(auto it = set.z(); it != set.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << std::endl;
-  */
-  
-  ADS_set <int,1> set1 = {1,2,4,3,5,6,7};
-  set1.dump();
-  for(auto it = set1.begin(); it != set1.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set1! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  set1.dump();
-  
-  for(auto it = set1.z(); it != set1.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 1 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set2 = {4,2,3,1,5,6};
-  set2.dump();
-  for(auto it = set2.begin(); it != set2.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set2! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  set2.dump();
-  for(auto it = set2.z(); it != set2.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 2 work perfect for Michael! " << std::endl;
-  std::cout << std::endl << std::endl; 
-  
-  
-  ADS_set <int,8> set3 = {4,2,6,5,1};
-  set3.dump();
-  for(auto it = set3.begin(); it != set3.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set3! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set3.dump();
-  for(auto it = set3.z(); it != set3.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 3 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set4 = {5,3,4,1,2};
-  set4.dump();
-  for(auto it = set4.begin(); it != set4.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set4! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set4.dump();
-  for(auto it = set4.z(); it != set4.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 4 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set5 = {7,8};
-  set5.dump();
-  for(auto it = set5.begin(); it != set5.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set5! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set5.dump();
-  for(auto it = set5.z(); it != set5.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 5 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,7> set6 = {7,6};
-  set6.dump();
-  for(auto it = set6.begin(); it != set6.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set6! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set6.dump();
-  for(auto it = set6.z(); it != set6.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 6 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set7 = {7};
-  set7.dump();
-  for(auto it = set7.begin(); it != set7.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set7! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set7.dump();
-  for(auto it = set7.z(); it != set7.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 7 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set8 = {};
-  set8.dump();
-  for(auto it = set8.begin(); it != set8.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set8! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set8.dump();
-  for(auto it = set8.z(); it != set8.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 8 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
+  test_1_funktion();
+  test_2_funktion();
+  test_3_funktion();
+  test_4_funktion();
+  test_5_funktion();
+  test_6_funktion();
+  test_7_funktion();
+  test_8_funktion();
   return 0;
 }
+
+  
 
 
 #endif
