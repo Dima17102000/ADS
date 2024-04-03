@@ -523,16 +523,28 @@ typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::begin()const
 template <typename Key, size_t N>
 typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::x()const 
 {   
-    // Поиск наименьшего элемента
-    for (size_t i = 0; i < directory_size; ++i) 
+    
+   
+    auto min = this->begin();
+    for(auto it = this->begin(); it != this->end(); it++)
+    {
+      if(std::less<value_type>{}(*it,*min))
+      {
+        min = it;
+      }
+    }
+    for (size_type i = 0; i < directory_size; ++i) 
     {
         if(buckets[i]->get_size() > 0) 
-        {
-            return Iterator(this, 0, 0,buckets[i]->get_value(0), false); 
+        {   
+            //std::cout << "Min VALUE:  " << *min << std::endl << std::endl;
+           return iterator(this,i,0,*min,false);
         }
     }
+     
+    return this->end();
     
-    return this->end(); // Если элементы отсутствуют
+
 }
 
 template <typename Key, size_t N>
@@ -548,50 +560,41 @@ class ADS_set<Key,N>::Iterator
    const ADS_set* s;
    size_type bucket_index;
    size_type elem_index;
-   value_type first_element;
-   bool normal = true; 
+   value_type smallest;
+   bool normal = true;
    public:
-   using value_type = Key;
+   //using value_type = Key;
    using difference_type = std::ptrdiff_t;
    using reference = const value_type &;
    using pointer = const value_type *;
    using iterator_category = std::forward_iterator_tag;
    //using size_type = size_t;
   	
-  	
-   Iterator(): s(nullptr), bucket_index(0), elem_index(0) {}
+   
+   
+   Iterator(): s(nullptr), bucket_index(0), elem_index(0){}
    explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
-   explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index,value_type first_element,bool normal): s{s},bucket_index{bucket_index},elem_index{elem_index},first_element{first_element},normal{normal}{}
-   reference operator*() const {return s->buckets[bucket_index]->get_value(elem_index);}  
+   explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index,value_type smallest,bool normal):
+   s{s},bucket_index{bucket_index},elem_index{elem_index},smallest{smallest},normal{normal}
+   {
+      if (!normal && **this == smallest) {
+         ++(*this); // Skip the smallest value if this is the initial iterator
+       }
+   }
+   
+   reference operator*() const { return s->buckets[bucket_index]->get_value(elem_index);}  
    pointer operator->() const {return &(s->buckets[bucket_index]->get_value(elem_index));}
+   
+   
    
    Iterator& operator++()
    {   
-       
-     
-      increment_helper(); // Переходим к следующему элементу
-      if (*this == this->s->end()) // Если достигнут конец контейнера
-        return *this;
-
-      if (normal) { // Если находимся в режиме "нормальном"
-        return *this; // Поведение остается без изменений
-      } 
-    
-    
-      if(!normal)
-      { 
-        value_type value1 = first_element; // Первый элемент
-        value_type value2 = **this; // Текущий элемент итератора
-        if (!std::less<value_type>{}(value1, value2)) 
-        {
-          increment_helper();
-        }
-     
-        normal = true;
-      }
-     
-      return *this;
-    }  
+       increment_helper();
+       if (!normal && **this == smallest) {
+           increment_helper(); // Skip the smallest value
+       }
+       return *this;
+   }  
     
    	 
    Iterator& increment_helper() 
@@ -647,8 +650,8 @@ class ADS_set<Key,N>::Iterator
   	
 };
 
-   /*
-
+   
+   
    void test_1_funktion()
    {
       ADS_set <int,8> set = {1,2,4,3,5,6,7};
@@ -662,13 +665,15 @@ class ADS_set<Key,N>::Iterator
           //set.dump();
           std::cout <<"Example 1_correct: ";
       
-      for(auto it = set.z(); it != set.end(); it++)
+      for(auto it = set.x(); it != set.end(); it++)
       {
           std::cout << *it << " "; 
       }
           std::cout << std::endl << std::endl;
    }
-
+   
+   
+   
    void test_2_funktion()
    {
       ADS_set <int,8> set1 = {4,2,3,1,5,6};
@@ -680,13 +685,13 @@ class ADS_set<Key,N>::Iterator
           std::cout << std::endl << std::endl;
           //set.dump();
           std::cout <<"Example 2_correct: ";
-      for(auto it = set1.z(); it != set1.end(); it++)
+      for(auto it = set1.x(); it != set1.end(); it++)
       {
           std::cout << *it << " "; 
       }
           std::cout << std::endl << std::endl;
    }
-
+   /*
    void test_3_funktion()
    {
       ADS_set <int,7> set2 = {4,2,6,5,1};
@@ -796,11 +801,12 @@ class ADS_set<Key,N>::Iterator
           std::cout << std::endl << std::endl;
    }
   */
+  
 int main()
 { 
   
-  //test_1_funktion();
-  //test_2_funktion();
+  test_1_funktion();
+  test_2_funktion();
   //test_3_funktion();
   //test_4_funktion();
   //test_5_funktion();
@@ -809,9 +815,9 @@ int main()
   //test_8_funktion();
   
   
-  
+  /*
   ADS_set<int, 2> set5;
-  std::vector<int> v = {1,2,3,4,5};
+  std::vector<int> v ={1};
   for (auto it = v.begin(); it != v.end(); it++) set5.insert(*it);
   set5.dump();
   std::cout << std::endl << std::endl;
@@ -820,13 +826,14 @@ int main()
     std::cout << *it << " ";
   }
   std::cout << std::endl << std::endl;
-
+  
+  
   // Assuming z() is corrected to begin() or whatever is intended
   for (auto it = set5.x(); it != set5.end(); it++) {
     std::cout << *it << " ";
   }
   std::cout << std::endl << std::endl;
-
+*/
   
   
   return 0;
