@@ -13,7 +13,7 @@ class ADS_set
     class Iterator;
     Iterator begin()const;
     Iterator end()const;
-    Iterator x()const;
+    Iterator w()const;
     using value_type = Key;
     using key_type = Key;
     using reference = value_type&;
@@ -354,25 +354,25 @@ class ADS_set
         size_type distance = directory_size/bucket_count;
         return distance;
     }
-    
+
     void insert1(key_type key)
     {
         
         size_type index = hasher{}(key) % directory_size;
-        
-        
-        if (buckets[index]->count(key))
+
+        if (buckets[index]->full()) 
         {
-            return;
-        }
+          splitBucket(index);
+          insert1(key); 
+        } 
         
-        if (buckets[index]->full())
+        else 
         {
-            splitBucket(index);
-            return insert1(key);
+            if (buckets[index]->insert(key)) 
+            {
+                total_elements++;
+            }
         }
-        buckets[index]->insert(key);
-        total_elements++;
     }
     
     
@@ -492,12 +492,12 @@ class ADS_set
 };
 
 
-
 template <typename Key, size_t N>
 void swap(ADS_set<Key,N> &lhs, ADS_set<Key,N> &rhs)
 {
   lhs.swap(rhs);
 }
+
 
 template<typename Key, size_t N>
 bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
@@ -511,8 +511,6 @@ bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs)
    }
    return true;
 }
-
-
 
 
 template<typename Key, size_t N>
@@ -538,30 +536,21 @@ typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::begin()const
 }
 
 template <typename Key, size_t N>
-typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::x()const 
+typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::w()const 
 {   
-    
-   
-    auto min = this->begin();
-    for(auto it = this->begin(); it != this->end(); it++)
-    {
-      if(std::less<value_type>{}(*it,*min))
-      {
-        min = it;
-      }
-    }
+
+
     for (size_type i = 0; i < directory_size; ++i) 
     {
         if(buckets[i]->get_size() > 0) 
         {   
             //std::cout << "Min VALUE:  " << *min << std::endl << std::endl;
-           return iterator(this,i,0,*min,false);
+           return iterator(this,i,0,false,3);
         }
     }
      
     return this->end();
     
-
 }
 
 template <typename Key, size_t N>
@@ -577,8 +566,8 @@ class ADS_set<Key,N>::Iterator
    const ADS_set* s;
    size_type bucket_index;
    size_type elem_index;
-   value_type smallest;
    bool normal = true;
+   size_type step = 1;
    public:
    //using value_type = Key;
    using difference_type = std::ptrdiff_t;
@@ -589,14 +578,17 @@ class ADS_set<Key,N>::Iterator
   	
    
    
-   Iterator(): s(nullptr), bucket_index(0), elem_index(0){}
+   Iterator(): s(nullptr), bucket_index(0), elem_index(0),step(1){}
    explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
-   explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index,value_type smallest,bool normal):
-   s{s},bucket_index{bucket_index},elem_index{elem_index},smallest{smallest},normal{normal}
-   {
-      if (!normal && **this == smallest) {
-         ++(*this); // Skip the smallest value if this is the initial iterator
-       }
+   explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index,bool normal,size_type step):
+   s{s},bucket_index{bucket_index},elem_index{elem_index},normal{normal},step{step}{
+     if (!normal) {
+            size_type initial_skips = step - 1 - (elem_index % step);
+            for (size_type i = 0; i < initial_skips; ++i) {
+                increment_helper();
+                if (*this == s->end()) break;
+            }
+        }
    }
    
    reference operator*() const { return s->buckets[bucket_index]->get_value(elem_index);}  
@@ -606,12 +598,12 @@ class ADS_set<Key,N>::Iterator
    
    Iterator& operator++()
    {   
-       increment_helper();
-       if (!normal && **this == smallest) {
-           increment_helper(); // Skip the smallest value
-       }
-       return *this;
-   }  
+     for (size_type i = 0; i < step; ++i) {
+            increment_helper();
+            if (*this == s->end()) break;
+        }
+        return *this;
+   }
     
    	 
    Iterator& increment_helper() 
@@ -682,7 +674,7 @@ class ADS_set<Key,N>::Iterator
           //set.dump();
           std::cout <<"Example 1_correct: ";
       
-      for(auto it = set.x(); it != set.end(); it++)
+      for(auto it = set.w(); it != set.end(); it++)
       {
           std::cout << *it << " "; 
       }
@@ -702,7 +694,25 @@ class ADS_set<Key,N>::Iterator
           std::cout << std::endl << std::endl;
           //set.dump();
           std::cout <<"Example 2_correct: ";
-      for(auto it = set1.x(); it != set1.end(); it++)
+      for(auto it = set1.w(); it != set1.end(); it++)
+      {
+          std::cout << *it << " "; 
+      }
+          std::cout << std::endl << std::endl;
+   }
+   
+   void test_3_funktion()
+   {
+      ADS_set <int,8> set5 = {7,6};
+      std::cout <<"Example 3: ";
+      for(auto it = set5.begin(); it != set5.end(); it++)
+      {
+          std::cout << *it << " "; 
+      }
+          std::cout << std::endl << std::endl;
+          //set1.dump();
+          std::cout <<"Example 3_correct: ";
+      for(auto it = set5.w(); it != set5.end(); it++)
       {
           std::cout << *it << " "; 
       }
@@ -824,7 +834,7 @@ int main()
   
   test_1_funktion();
   test_2_funktion();
-  //test_3_funktion();
+  test_3_funktion();
   //test_4_funktion();
   //test_5_funktion();
   //test_6_funktion();

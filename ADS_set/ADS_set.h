@@ -13,7 +13,6 @@ class ADS_set
     class Iterator;
     Iterator begin()const;
     Iterator end()const;
-    Iterator z()const;
     using value_type = Key;
     using key_type = Key;
     using reference = value_type&;
@@ -21,7 +20,7 @@ class ADS_set
     using size_type = size_t;
     using difference_type = std::ptrdiff_t;
     using iterator = Iterator;
-    using const_iterator = iterator;
+    //using iterator = const_iterator;
     using key_equal = std::equal_to<key_type>;                       // Hashing
     using hasher = std::hash<key_type>;                              // Hashing
 
@@ -359,20 +358,20 @@ class ADS_set
     {
         
         size_type index = hasher{}(key) % directory_size;
-
-        if (buckets[index]->full()) 
-        {
-          splitBucket(index);
-          insert1(key); 
-        } 
         
-        else 
+        
+        if (buckets[index]->count(key))
         {
-            if (buckets[index]->insert(key)) 
-            {
-                total_elements++;
-            }
+            return;
         }
+        
+        if (buckets[index]->full())
+        {
+            splitBucket(index);
+            return insert1(key);
+        }
+        buckets[index]->insert(key);
+        total_elements++;
     }
     
     
@@ -481,8 +480,23 @@ class ADS_set
         return end();
     }
 		
+		void swap(ADS_set& other)
+		{
+		  using std::swap;
+		  swap(buckets,other.buckets);
+		  swap(total_elements,other.total_elements);
+		  swap(directory_size,other.directory_size);
+		  swap(depth,other.depth);
+		}
 };
 
+
+
+template <typename Key, size_t N>
+void swap(ADS_set<Key,N> &lhs, ADS_set<Key,N> &rhs)
+{
+  lhs.swap(rhs);
+}
 
 template<typename Key, size_t N>
 bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
@@ -496,6 +510,8 @@ bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs)
    }
    return true;
 }
+
+
 
 
 template<typename Key, size_t N>
@@ -521,19 +537,6 @@ typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::begin()const
 }
 
 template <typename Key, size_t N>
-typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::z()const 
-{
-   for (size_t i = 0; i < directory_size; ++i) 
-   {
-     if(buckets[i]->get_size() > 0) 
-     {
-       return iterator(this, i, 0,buckets[i]->get_value(0)); 
-     }
-   } 
-   return this->end(); // All buckets are empty
-}
-
-template <typename Key, size_t N>
 typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::end()const
 {
    return iterator(this, directory_size, 0);
@@ -545,8 +548,7 @@ class ADS_set<Key,N>::Iterator
 {
    const ADS_set* s;
    size_type bucket_index;
-   size_type elem_index;
-   value_type first_element;   
+   size_type elem_index;   
    public:
    using value_type = Key;
    using difference_type = std::ptrdiff_t;
@@ -558,27 +560,11 @@ class ADS_set<Key,N>::Iterator
   	
    Iterator(): s(nullptr), bucket_index(0), elem_index(0) {}
    explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
-   explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index,value_type first_element): s{s},bucket_index{bucket_index},elem_index{elem_index},first_element{first_element}{}
    reference operator*() const {return s->buckets[bucket_index]->get_value(elem_index);}  
    pointer operator->() const {return &(s->buckets[bucket_index]->get_value(elem_index));}
    
-   Iterator& operator++()
-   {
-      increment_helper();
-      if(*this == this->s->end())
-         return *this;
-      value_type value1 = first_element;
-      value_type value2 = **this;
-      if(value2 < value1)
-      {
-        return ++(*this); 
-      }
-     //std::cout << *(this->s->begin()) << " " ;
-     //std::cout << first_element << " ";
-     return *this;
-   }
-   	 
-   Iterator& increment_helper() 
+  	 
+   Iterator& operator++() 
    {
       // Move to the next element within the current bucket
       ++elem_index;
@@ -630,158 +616,6 @@ class ADS_set<Key,N>::Iterator
 
   	
 };
-
-int main()
-{
-  /*
-  ADS_set <int,3> set = {10,12,15,16,17};
-  set.dump();
-  for(auto it = set.z(); it != set.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << std::endl;
-  */
-  
-  ADS_set <int,1> set1 = {1,2,4,3,5,6,7};
-  set1.dump();
-  for(auto it = set1.begin(); it != set1.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set1! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  set1.dump();
-  
-  for(auto it = set1.z(); it != set1.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 1 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set2 = {4,2,3,1,5,6};
-  set2.dump();
-  for(auto it = set2.begin(); it != set2.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set2! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  set2.dump();
-  for(auto it = set2.z(); it != set2.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 2 work perfect for Michael! " << std::endl;
-  std::cout << std::endl << std::endl; 
-  
-  
-  ADS_set <int,8> set3 = {4,2,6,5,1};
-  set3.dump();
-  for(auto it = set3.begin(); it != set3.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set3! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set3.dump();
-  for(auto it = set3.z(); it != set3.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 3 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set4 = {5,3,4,1,2};
-  set4.dump();
-  for(auto it = set4.begin(); it != set4.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set4! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set4.dump();
-  for(auto it = set4.z(); it != set4.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 4 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set5 = {7,8};
-  set5.dump();
-  for(auto it = set5.begin(); it != set5.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set5! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set5.dump();
-  for(auto it = set5.z(); it != set5.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 5 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,7> set6 = {7,6};
-  set6.dump();
-  for(auto it = set6.begin(); it != set6.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set6! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set6.dump();
-  for(auto it = set6.z(); it != set6.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 6 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set7 = {7};
-  set7.dump();
-  for(auto it = set7.begin(); it != set7.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set7! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set7.dump();
-  for(auto it = set7.z(); it != set7.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 7 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  
-  
-  ADS_set <int,8> set8 = {};
-  set8.dump();
-  for(auto it = set8.begin(); it != set8.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nUsual set8! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  set8.dump();
-  for(auto it = set8.z(); it != set8.end(); ++it)
-  {
-   std::cout << *it << " "; 
-  }
-  std::cout << "\nTest 8 work perfect for Michael! " << std::endl; 
-  std::cout << std::endl << std::endl;
-  return 0;
-}
 
 
 #endif

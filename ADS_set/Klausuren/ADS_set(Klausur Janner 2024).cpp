@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-
+#include <vector>
 
 template <typename Key, size_t N = 3>
 class ADS_set
@@ -354,25 +354,25 @@ class ADS_set
         size_type distance = directory_size/bucket_count;
         return distance;
     }
-
+    
     void insert1(key_type key)
     {
         
         size_type index = hasher{}(key) % directory_size;
-
-        if (buckets[index]->full()) 
-        {
-          splitBucket(index);
-          insert1(key); 
-        } 
         
-        else 
+        
+        if (buckets[index]->count(key))
         {
-            if (buckets[index]->insert(key)) 
-            {
-                total_elements++;
-            }
+            return;
         }
+        
+        if (buckets[index]->full())
+        {
+            splitBucket(index);
+            return insert1(key);
+        }
+        buckets[index]->insert(key);
+        total_elements++;
     }
     
     
@@ -481,8 +481,23 @@ class ADS_set
         return end();
     }
 		
+		void swap(ADS_set& other)
+		{
+		  using std::swap;
+		  swap(buckets,other.buckets);
+		  swap(total_elements,other.total_elements);
+		  swap(directory_size,other.directory_size);
+		  swap(depth,other.depth);
+		}
 };
 
+
+
+template <typename Key, size_t N>
+void swap(ADS_set<Key,N> &lhs, ADS_set<Key,N> &rhs)
+{
+  lhs.swap(rhs);
+}
 
 template<typename Key, size_t N>
 bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
@@ -496,6 +511,8 @@ bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs)
    }
    return true;
 }
+
+
 
 
 template<typename Key, size_t N>

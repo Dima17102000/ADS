@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include <vector>
+
 
 template <typename Key, size_t N = 3>
 class ADS_set
@@ -13,7 +13,6 @@ class ADS_set
     class Iterator;
     Iterator begin()const;
     Iterator end()const;
-    Iterator z()const;
     using value_type = Key;
     using key_type = Key;
     using reference = value_type&;
@@ -21,7 +20,7 @@ class ADS_set
     using size_type = size_t;
     using difference_type = std::ptrdiff_t;
     using iterator = Iterator;
-    using const_iterator = iterator;
+    //using iterator = const_iterator;
     using key_equal = std::equal_to<key_type>;                       // Hashing
     using hasher = std::hash<key_type>;                              // Hashing
 
@@ -354,25 +353,25 @@ class ADS_set
         size_type distance = directory_size/bucket_count;
         return distance;
     }
-
+    
     void insert1(key_type key)
     {
         
         size_type index = hasher{}(key) % directory_size;
-
-        if (buckets[index]->full()) 
-        {
-          splitBucket(index);
-          insert1(key); 
-        } 
         
-        else 
+        
+        if (buckets[index]->count(key))
         {
-            if (buckets[index]->insert(key)) 
-            {
-                total_elements++;
-            }
+            return;
         }
+        
+        if (buckets[index]->full())
+        {
+            splitBucket(index);
+            return insert1(key);
+        }
+        buckets[index]->insert(key);
+        total_elements++;
     }
     
     
@@ -481,8 +480,23 @@ class ADS_set
         return end();
     }
 		
+		void swap(ADS_set& other)
+		{
+		  using std::swap;
+		  swap(buckets,other.buckets);
+		  swap(total_elements,other.total_elements);
+		  swap(directory_size,other.directory_size);
+		  swap(depth,other.depth);
+		}
 };
 
+
+
+template <typename Key, size_t N>
+void swap(ADS_set<Key,N> &lhs, ADS_set<Key,N> &rhs)
+{
+  lhs.swap(rhs);
+}
 
 template<typename Key, size_t N>
 bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
@@ -496,6 +510,8 @@ bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs)
    }
    return true;
 }
+
+
 
 
 template<typename Key, size_t N>
@@ -521,19 +537,6 @@ typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::begin()const
 }
 
 template <typename Key, size_t N>
-typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::z()const 
-{
-   for (size_t i = 0; i < directory_size; ++i) 
-   {
-     if(buckets[i]->get_size() > 0) 
-     {
-       return iterator(this, i, 0,buckets[i]->get_value(0),false); 
-     }
-   } 
-   return this->end(); // All buckets are empty
-}
-
-template <typename Key, size_t N>
 typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::end()const
 {
    return iterator(this, directory_size, 0);
@@ -545,9 +548,7 @@ class ADS_set<Key,N>::Iterator
 {
    const ADS_set* s;
    size_type bucket_index;
-   size_type elem_index;
-   value_type first_element;  
-   bool normal = true; 
+   size_type elem_index;   
    public:
    using value_type = Key;
    using difference_type = std::ptrdiff_t;
@@ -559,49 +560,11 @@ class ADS_set<Key,N>::Iterator
   	
    Iterator(): s(nullptr), bucket_index(0), elem_index(0) {}
    explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
-   explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index,value_type first_element,bool normal): s{s},bucket_index{bucket_index},elem_index{elem_index},first_element{first_element},normal{normal}{}
    reference operator*() const {return s->buckets[bucket_index]->get_value(elem_index);}  
    pointer operator->() const {return &(s->buckets[bucket_index]->get_value(elem_index));}
    
-   Iterator& operator++()
-   {  
-      /*
-      increment_helper();
-      if(*this == this->s->end())
-         return *this;
-      value_type value1 = first_element;
-      value_type value2 = **this;
-      if(std::less<value_type>{}(value2, value1))
-      {
-        return ++(*this); 
-      }
-     //std::cout << *(this->s->begin()) << " " ;
-     //std::cout << first_element << " ";
-     return *this;
-     */
-     
-    increment_helper(); // Переходим к следующему элементу
-    if (*this == this->s->end()) // Если достигнут конец контейнера
-        return *this;
-
-    if (normal) { // Если находимся в режиме "нормальном"
-        return *this; // Поведение остается без изменений
-    } 
-    
-    
-     
-     value_type value1 = first_element; // Первый элемент
-     value_type value2 = **this; // Текущий элемент итератора
-     if (std::less<value_type>{}(value2, value1)) 
-     {
-        return ++(*this); // Если текущий элемент меньше первого, пропускаем его
-     }
-     
-     return *this;
-      
-   }
-   	 
-   Iterator& increment_helper() 
+  	 
+   Iterator& operator++() 
    {
       // Move to the next element within the current bucket
       ++elem_index;
@@ -653,191 +616,6 @@ class ADS_set<Key,N>::Iterator
 
   	
 };
-
-   void test_1_funktion()
-   {
-      ADS_set <int,8> set = {1,2,4,3,5,6,7};
-      std::cout <<"Example 1: ";
-      for(auto it = set.begin(); it != set.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-          
-          //set.dump();
-          std::cout <<"Example 1_correct: ";
-      
-      for(auto it = set.z(); it != set.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-   }
-
-   void test_2_funktion()
-   {
-      ADS_set <int,8> set1 = {4,2,3,1,5,6};
-      std::cout <<"Example 2: ";
-      for(auto it = set1.begin(); it != set1.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-          //set.dump();
-          std::cout <<"Example 2_correct: ";
-      for(auto it = set1.z(); it != set1.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-   }
-
-   void test_3_funktion()
-   {
-      ADS_set <int,7> set2 = {4,2,6,5,1};
-      std::cout <<"Example 3: ";
-      for(auto it = set2.begin(); it != set2.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-          //set1.dump();
-          std::cout <<"Example 3_correct: ";
-      for(auto it = set2.z(); it != set2.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-   }
-   
-   void test_4_funktion()
-   {
-      ADS_set <int,7> set3 = {5,3,4,1,2};
-      std::cout <<"Example 4: ";
-      for(auto it = set3.begin(); it != set3.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-          //set1.dump();
-          std::cout <<"Example 4_correct: ";
-      for(auto it = set3.z(); it != set3.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-   }
-    
-   void test_5_funktion()
-   {
-      ADS_set <int,5> set4 = {7,8};
-      std::cout <<"Example 5: ";
-      for(auto it = set4.begin(); it != set4.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-          //set1.dump();
-          std::cout <<"Example 5_correct: ";
-      for(auto it = set4.z(); it != set4.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-   }
-    
-   void test_6_funktion()
-   {
-      ADS_set <int,8> set5 = {7,6};
-      std::cout <<"Example 6: ";
-      for(auto it = set5.begin(); it != set5.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-          //set1.dump();
-          std::cout <<"Example 6_correct: ";
-      for(auto it = set5.z(); it != set5.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-   }
-    
-   void test_7_funktion()
-   {
-      ADS_set <int,1> set5 = {7};
-      std::cout <<"Example 7: ";
-      for(auto it = set5.begin(); it != set5.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-          //set1.dump();
-          std::cout <<"Example 7_correct: ";
-      for(auto it = set5.z(); it != set5.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-   }
-    
-    
-   void test_8_funktion()
-   {
-      ADS_set <int,1> set5 = {};
-      std::cout <<"Example 8: ";
-      for(auto it = set5.begin(); it != set5.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-          //set1.dump();
-          std::cout <<"Example 8_correct: ";
-      for(auto it = set5.z(); it != set5.end(); it++)
-      {
-          std::cout << *it << " "; 
-      }
-          std::cout << std::endl << std::endl;
-   }
-
-int main()
-{ 
-  
-  //test_1_funktion();
-  //test_2_funktion();
-  //test_3_funktion();
-  //test_4_funktion();
-  //test_5_funktion();
-  //test_6_funktion();
-  //test_7_funktion();
-  //test_8_funktion();
-  
-  
-  
-  ADS_set<int, 2> set5;
-  std::vector<int> v = {1, 2, 3, 4, 5, 6, 7};
-  for (auto it = v.begin(); it != v.end(); it++) set5.insert(*it);
-  set5.dump();
-  std::cout << std::endl << std::endl;
-
-  for (auto it = set5.begin(); it != set5.end(); it++) {
-    std::cout << *it << " ";
-  }
-  std::cout << std::endl << std::endl;
-
-  // Assuming z() is corrected to begin() or whatever is intended
-  for (auto it = set5.z(); it != set5.end(); it++) {
-    std::cout << *it << " ";
-  }
-  std::cout << std::endl << std::endl;
-
-  
-  
-  return 0;
-}
-
-  
 
 
 #endif
