@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vector>
 
+
 template <typename Key, size_t N = 3>
 class ADS_set
 {
@@ -24,7 +25,6 @@ class ADS_set
     using const_iterator = iterator;
     using key_equal = std::equal_to<key_type>;                       // Hashing
     using hasher = std::hash<key_type>;                              // Hashing
-
 
     class Bucket
     {
@@ -354,25 +354,25 @@ class ADS_set
         size_type distance = directory_size/bucket_count;
         return distance;
     }
-
+    
     void insert1(key_type key)
     {
         
         size_type index = hasher{}(key) % directory_size;
-
-        if (buckets[index]->full()) 
-        {
-          splitBucket(index);
-          insert1(key); 
-        } 
         
-        else 
+        
+        if (buckets[index]->count(key))
         {
-            if (buckets[index]->insert(key)) 
-            {
-                total_elements++;
-            }
+            return;
         }
+        
+        if (buckets[index]->full())
+        {
+            splitBucket(index);
+            return insert1(key);
+        }
+        buckets[index]->insert(key);
+        total_elements++;
     }
     
     
@@ -492,12 +492,12 @@ class ADS_set
 };
 
 
+
 template <typename Key, size_t N>
 void swap(ADS_set<Key,N> &lhs, ADS_set<Key,N> &rhs)
 {
   lhs.swap(rhs);
 }
-
 
 template<typename Key, size_t N>
 bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
@@ -511,6 +511,8 @@ bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs)
    }
    return true;
 }
+
+
 
 
 template<typename Key, size_t N>
@@ -543,15 +545,18 @@ typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::w()const
     for (size_type i = 0; i < directory_size; ++i) 
     {
         if(buckets[i]->get_size() > 0) 
-        {   
-            //std::cout << "Min VALUE:  " << *min << std::endl << std::endl;
-           return iterator(this,i,0,false,3);
+        {  
+          Iterator it = iterator(this,i,0,false);
+          it.increment_helper();
+          it.increment_helper();
+          return it;
         }
     }
      
     return this->end();
     
 }
+
 
 template <typename Key, size_t N>
 typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::end()const
@@ -567,7 +572,6 @@ class ADS_set<Key,N>::Iterator
    size_type bucket_index;
    size_type elem_index;
    bool normal = true;
-   size_type step = 1;
    public:
    //using value_type = Key;
    using difference_type = std::ptrdiff_t;
@@ -578,18 +582,10 @@ class ADS_set<Key,N>::Iterator
   	
    
    
-   Iterator(): s(nullptr), bucket_index(0), elem_index(0),step(1){}
+   Iterator(): s(nullptr), bucket_index(0), elem_index(0){}
    explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index): s{s},bucket_index{bucket_index},elem_index{elem_index}{}
-   explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index,bool normal,size_type step):
-   s{s},bucket_index{bucket_index},elem_index{elem_index},normal{normal},step{step}{
-     if (!normal) {
-            size_type initial_skips = step - 1 - (elem_index % step);
-            for (size_type i = 0; i < initial_skips; ++i) {
-                increment_helper();
-                if (*this == s->end()) break;
-            }
-        }
-   }
+   explicit Iterator(const ADS_set* s, size_type bucket_index, size_type elem_index,bool normal):
+   s{s},bucket_index{bucket_index},elem_index{elem_index},normal{normal}{}
    
    reference operator*() const { return s->buckets[bucket_index]->get_value(elem_index);}  
    pointer operator->() const {return &(s->buckets[bucket_index]->get_value(elem_index));}
@@ -597,12 +593,14 @@ class ADS_set<Key,N>::Iterator
    
    
    Iterator& operator++()
-   {   
-     for (size_type i = 0; i < step; ++i) {
-            increment_helper();
-            if (*this == s->end()) break;
-        }
-        return *this;
+   {  
+      increment_helper();
+      if(!normal)
+      { 
+        increment_helper();
+        increment_helper();
+      }  
+      return *this;
    }
     
    	 
@@ -663,7 +661,7 @@ class ADS_set<Key,N>::Iterator
    
    void test_1_funktion()
    {
-      ADS_set <int,8> set = {1,2,4,3,5,6,7};
+      ADS_set <int,8> set = {1,2,3,4,5,6,7};
       std::cout <<"Example 1: ";
       for(auto it = set.begin(); it != set.end(); it++)
       {
@@ -685,7 +683,7 @@ class ADS_set<Key,N>::Iterator
    
    void test_2_funktion()
    {
-      ADS_set <int,8> set1 = {4,2,3,1,5,6};
+      ADS_set <int,8> set1 = {4,3,6,1};
       std::cout <<"Example 2: ";
       for(auto it = set1.begin(); it != set1.end(); it++)
       {

@@ -4,12 +4,12 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-
+#include <vector>
 
 template <typename Key, size_t N = 3>
 class ADS_set
 {
-    public:
+   public:
     class Iterator;
     Iterator begin()const;
     Iterator end()const;
@@ -354,25 +354,25 @@ class ADS_set
         size_type distance = directory_size/bucket_count;
         return distance;
     }
-
+    
     void insert1(key_type key)
     {
         
         size_type index = hasher{}(key) % directory_size;
-
-        if (buckets[index]->full()) 
-        {
-          splitBucket(index);
-          insert1(key); 
-        } 
         
-        else 
+        
+        if (buckets[index]->count(key))
         {
-            if (buckets[index]->insert(key)) 
-            {
-                total_elements++;
-            }
+            return;
         }
+        
+        if (buckets[index]->full())
+        {
+            splitBucket(index);
+            return insert1(key);
+        }
+        buckets[index]->insert(key);
+        total_elements++;
     }
     
     
@@ -491,12 +491,13 @@ class ADS_set
 		}
 };
 
+
+
 template <typename Key, size_t N>
 void swap(ADS_set<Key,N> &lhs, ADS_set<Key,N> &rhs)
 {
   lhs.swap(rhs);
 }
-
 
 template<typename Key, size_t N>
 bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
@@ -510,6 +511,8 @@ bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs)
    }
    return true;
 }
+
+
 
 
 template<typename Key, size_t N>
@@ -681,7 +684,7 @@ class ADS_set<Key,N>::Iterator
    
    void test_2_funktion()
    {
-      ADS_set <int,7> set3 = {9,7,8};
+      ADS_set <int,7> set3 = {7,8};
       std::cout <<"Example 4: ";
       for(auto it = set3.begin(); it != set3.end(); it++)
       {
@@ -696,6 +699,7 @@ class ADS_set<Key,N>::Iterator
       }
           std::cout << std::endl << std::endl;
    }
+   
    /*
    void test_3_funktion()
    {
@@ -796,7 +800,7 @@ int main()
   
   
   // Assuming z() is corrected to begin() or whatever is intended
-  for (auto it = set5.y(); it != set5.end(); it++) {
+  for (auto it = set5.x(); it != set5.end(); it++) {
     std::cout << *it << " ";
   }
   std::cout << std::endl << std::endl;
