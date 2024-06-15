@@ -353,25 +353,25 @@ class ADS_set
         size_type distance = directory_size/bucket_count;
         return distance;
     }
-
+    
     void insert1(key_type key)
     {
         
         size_type index = hasher{}(key) % directory_size;
-
-        if (buckets[index]->full()) 
-        {
-          splitBucket(index);
-          insert1(key); 
-        } 
         
-        else 
+        
+        if (buckets[index]->count(key))
         {
-            if (buckets[index]->insert(key)) 
-            {
-                total_elements++;
-            }
+            return;
         }
+        
+        if (buckets[index]->full())
+        {
+            splitBucket(index);
+            return insert1(key);
+        }
+        buckets[index]->insert(key);
+        total_elements++;
     }
     
     
@@ -490,12 +490,13 @@ class ADS_set
 		}
 };
 
+
+
 template <typename Key, size_t N>
 void swap(ADS_set<Key,N> &lhs, ADS_set<Key,N> &rhs)
 {
   lhs.swap(rhs);
 }
-
 
 template<typename Key, size_t N>
 bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs) 
@@ -509,6 +510,8 @@ bool operator==(const ADS_set<Key, N>& lhs, const ADS_set<Key, N>& rhs)
    }
    return true;
 }
+
+
 
 
 template<typename Key, size_t N>
@@ -546,6 +549,7 @@ typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::z()const
         } 
     return this->end();
 }
+
 
 template <typename Key, size_t N>
 typename ADS_set<Key, N>::Iterator ADS_set<Key, N>::end()const
@@ -585,19 +589,20 @@ class ADS_set<Key,N>::Iterator
             // Special mode logic
             increment_helper();
             ++index;
-
-            // Skip every third element, except the last one
-            if (index % 3 == 2 && index != s->size() - 1) 
-            {
-                increment_helper();
-                ++index;
-            }
-
+            
             // Ensure the last element is not skipped
             if (index == s->size() - 1) 
             {
                 return *this;
             }
+
+            // Skip every third element, except the last one
+            if (index % 3 == 2) 
+            {
+                increment_helper();
+                ++index;
+            }
+
         } 
         
         else 
@@ -689,7 +694,7 @@ class ADS_set<Key,N>::Iterator
    
    void test_2_funktion()
    {
-      ADS_set <int,7> set3 = {9,7,8};
+      ADS_set <int,7> set3 = {1,2,3,4,5,6};
       std::cout <<"Example 4: ";
       for(auto it = set3.begin(); it != set3.end(); it++)
       {
