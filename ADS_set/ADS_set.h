@@ -6,7 +6,7 @@
 #include <algorithm>
 
 
-template <typename Key, size_t N = 3>
+template <typename Key, size_t N = 11>
 class ADS_set
 {
     public:
@@ -592,7 +592,7 @@ class ADS_set<Key,N>::Iterator
        }
 
        // End of the container
-       //*this = s->end();
+       *this = s->end();
        return *this;
    }
     
