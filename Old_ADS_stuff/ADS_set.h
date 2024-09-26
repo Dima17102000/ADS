@@ -592,7 +592,7 @@ class ADS_set<Key,N>::Iterator
        }
 
        // End of the container
-       *this = s->end();
+       //*this = s->end();
        return *this;
    }
     

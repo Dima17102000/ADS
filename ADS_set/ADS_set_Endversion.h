@@ -353,7 +353,7 @@ class ADS_set
         size_type distance = directory_size/bucket_count;
         return distance;
     }
-    
+
     void insert1(key_type key)
     {
         
