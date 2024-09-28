@@ -1,0 +1,15 @@
+                545,894,332 calls to std::equal_to<ADS_set::key_type>::operator()
+                41,547,568 calls to std::hash<ADS_set::key_type>::operator()
+                 1,146,685 calls to new allocating 36,693,920 bytes in total (*)
+                 1,203,168 calls to new[] allocating 1,306,415,752 bytes in total
+               900,761,488 bytes dynamic memory peak
+               
+               
+               
+               677,816,204 calls to std::equal_to<ADS_set::key_type>::operator()
+               37,040,953 calls to std::hash<ADS_set::key_type>::operator()
+               263,837 calls to new allocating 172,128,144 bytes in total (*)
+               460 calls to new[] allocating 1,112,271,808 bytes in total
+               805,682,304 bytes dynamic memory peak
+ 
+              (*) including 27 calls by the unit test to create ADS_set objects

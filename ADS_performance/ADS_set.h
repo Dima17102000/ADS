@@ -6,7 +6,7 @@
 #include <algorithm>
 
 
-template <typename Key, size_t N = 3>
+template <typename Key, size_t N = 11>
 class ADS_set
 {
     public:
@@ -121,7 +121,7 @@ class ADS_set
             }
         }
 
-        size_type count(const key_type &key) const
+        inline size_type count(const key_type &key) const
         {
             for(size_type i{0}; i < size; i++)
             {
@@ -136,7 +136,7 @@ class ADS_set
        
         bool insert(key_type key) 
         {
-            if(count(key)) return false; // Key already exists
+            //if(count(key)) return false; // Key already exists
 
             if(size < max_size) 
             {
@@ -146,7 +146,7 @@ class ADS_set
             return false; // Indicate failure (bucket is full)
         }
        
-        void erase(key_type key)
+        size_type erase(key_type key)
         {
             for(size_type  i{0}; i < size; i++)
             {
@@ -157,9 +157,10 @@ class ADS_set
                         values[i] = values[size-1];
                     }
                     --size;
-                    return;
+                    return 1;
                 }
             }
+            return 0;
         }
     };
     private:
@@ -191,7 +192,7 @@ class ADS_set
      
     void splitBucket(size_type index)
     {
-        get_bucket_first_index(index);
+        
         size_type first_meet_index = get_bucket_first_index(index);
         size_type distance = get_bucket_distance(index);
         
@@ -205,7 +206,7 @@ class ADS_set
         
         for(size_type i = first_meet_index; i < directory_size;i+=2*distance)
         {   // it gives us the first time meeting index in our directory.
-        		buckets[i] = newBucket;
+          	buckets[i] = newBucket;
         }
         
         // delete elements from old bucket and reinsert them to set(recursively)
@@ -431,14 +432,13 @@ class ADS_set
     size_type erase(key_type key)
     {
         size_type  index =  hasher{}(key) % directory_size;
-        if (!buckets[index]->count(key))
+        auto res = buckets[index]->erase(key);
+        if(res == 1)
         {
-            return 0;
+          total_elements--;
+          return 1;
         }
-        buckets[index]->erase(key);
-        total_elements--;
-        
-        return 1;
+        return 0;
     }
     
     void clear()
@@ -464,8 +464,7 @@ class ADS_set
     {
        size_type index = hasher{}(key) % directory_size; // Calculate bucket index
        index = get_bucket_first_index(index);
-       if (buckets[index]->count(key) > 0) 
-       {
+       
           // Key exists in the bucket, find its position
           for (size_type pos = 0; pos < buckets[index]->get_size(); ++pos) 
           {
@@ -475,7 +474,7 @@ class ADS_set
               return iterator(const_cast<ADS_set<Key, N>*>(this), index, pos);
             }
           }
-       }
+       
         // Key not found, return end iterator
         return end();
     }
