@@ -6,7 +6,7 @@
 #include <algorithm>
 
 
-template <typename Key, size_t N = 11>
+template <typename Key, size_t N = 3>
 class ADS_set
 {
     public:
